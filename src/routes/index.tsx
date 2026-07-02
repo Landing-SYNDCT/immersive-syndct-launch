@@ -70,7 +70,7 @@ function Landing() {
       {/* Nav */}
       <header className="relative z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-          <img src={imagotipo} alt="Immersive by SYNDCT" className="h-14 w-auto md:h-16" />
+          <img src={imagotipo} alt="Immersive by SYNDCT" className="h-9 w-auto" />
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a href="#experiencia" className="transition-colors hover:text-foreground">Experiencia</a>
             <a href="#formatos" className="transition-colors hover:text-foreground">Formatos</a>
@@ -94,15 +94,11 @@ function Landing() {
               Nuevo · Plataforma inmersiva
             </div>
 
-            <h1 className="sr-only">Immersive by SYNDCT</h1>
-            <img
-              src={imagotipo}
-              alt="Immersive by SYNDCT"
-              className="w-full max-w-[520px] md:max-w-[640px] lg:max-w-[720px]"
-            />
-            <p className="mt-4 font-display text-2xl leading-tight tracking-tight md:text-3xl">
-              <span className="text-prism animate-shimmer">Música, Arte & Tecnología</span>
-            </p>
+            <h1 className="font-display text-5xl leading-[0.95] tracking-tight md:text-7xl lg:text-8xl">
+              Immersive
+              <br />
+              <span className="text-prism animate-shimmer">by SYNDCT</span>
+            </h1>
 
             <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
               Plataforma de contenidos, experiencias, paneles, streamings, música, arte,
