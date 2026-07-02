@@ -133,21 +133,28 @@ function Landing() {
           {/* Hero visual */}
           <div className="relative md:col-span-5">
             <div className="relative aspect-square w-full">
+              {/* Domo backdrop */}
               <div className="absolute inset-0 rounded-full ring-prism overflow-hidden shadow-[0_40px_120px_-20px_rgba(83,61,186,0.6)]">
                 <img
                   src={heroImage}
                   alt="Domo inmersivo con refracción de luz prisma"
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover opacity-70"
                   width={1536}
                   height={1536}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-background/40" />
               </div>
+
+              {/* Isotipo protagonista */}
               <img
                 src={isotipo}
-                alt=""
-                className="pointer-events-none absolute -bottom-6 -right-6 h-24 w-24 opacity-70 animate-spin-slow md:h-32 md:w-32"
-                aria-hidden
+                alt="Isotipo Immersive"
+                className="absolute inset-0 m-auto h-[78%] w-[78%] object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.35)] animate-float"
               />
+
+              {/* Slow-rotating outer ring accent */}
+              <div className="pointer-events-none absolute inset-[-4%] rounded-full border border-white/10 animate-spin-slow" />
+
               <div className="pointer-events-none absolute -top-3 -left-3 rounded-full border border-white/10 bg-black/60 px-3 py-1.5 text-[10px] uppercase tracking-[0.25em] text-muted-foreground backdrop-blur">
                 Live · Domo
               </div>
