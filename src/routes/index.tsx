@@ -70,7 +70,7 @@ function Landing() {
       {/* Nav */}
       <header className="relative z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-          <img src={imagotipo} alt="Immersive by SYNDCT" className="h-9 w-auto" />
+          <img src={imagotipo} alt="Immersive by SYNDCT" className="h-14 w-auto md:h-16" />
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a href="#experiencia" className="transition-colors hover:text-foreground">Experiencia</a>
             <a href="#formatos" className="transition-colors hover:text-foreground">Formatos</a>
