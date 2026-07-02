@@ -81,9 +81,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Plataforma de contenidos, experiencias y música por SYNDCT — arte, tecnología y educación en un solo espacio inmersivo." },
       { name: "author", content: "SYNDCT" },
       { property: "og:title", content: "Immersive by SYNDCT" },
-      { property: "og:description", content: "Música, arte y tecnología en un mismo pulso." },
+      { property: "og:description", content: "Plataforma de contenidos, experiencias y música por SYNDCT — arte, tecnología y educación en un solo espacio inmersivo." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Immersive by SYNDCT" },
+      { name: "twitter:description", content: "Plataforma de contenidos, experiencias y música por SYNDCT — arte, tecnología y educación en un solo espacio inmersivo." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f23fe04-a42f-46e4-bd2d-fdf732e611bb/id-preview-6890e19a--308790be-a47b-4c2c-970e-dd23ad20513f.lovable.app-1783028671622.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f23fe04-a42f-46e4-bd2d-fdf732e611bb/id-preview-6890e19a--308790be-a47b-4c2c-970e-dd23ad20513f.lovable.app-1783028671622.png" },
     ],
     links: [
       {
