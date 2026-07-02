@@ -77,14 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Immersive by SYNDCT" },
+      { name: "description", content: "Plataforma de contenidos, experiencias y música por SYNDCT — arte, tecnología y educación en un solo espacio inmersivo." },
+      { name: "author", content: "SYNDCT" },
+      { property: "og:title", content: "Immersive by SYNDCT" },
+      { property: "og:description", content: "Música, arte y tecnología en un mismo pulso." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
