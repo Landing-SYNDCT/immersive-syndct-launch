@@ -1,20 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight, Radio, Music, Palette, GraduationCap, Sparkles, Users, Mic, Video, Calendar, Headphones, Cpu } from "lucide-react";
 import heroImage from "@/assets/immersive-hero.jpg";
-import textureImage from "@/assets/immersive-texture.jpg";
 import imagotipo from "@/assets/immersive-imagotipo.png";
 import isotipo from "@/assets/immersive-isotipo.png";
+import textureImage from "@/assets/immersive-texture.jpg";
+import { createFileRoute } from "@tanstack/react-router";
+import { ArrowUpRight, Calendar, Cpu, GraduationCap, Headphones, Mic, Music, Palette, Radio, Sparkles, Users, Video } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Immersive by SYNDCT — Música, Arte & Tecnología" },
+      { title: "Immersive by SYNDCT & TechnoSur — Música, Arte & Tecnología" },
       {
         name: "description",
         content:
-          "Immersive by SYNDCT es la plataforma de contenidos, paneles, streamings, sesiones musicales y experiencias que conecta arte, tecnología y cultura.",
+          "Immersive by SYNDCT & TechnoSur es la plataforma de contenidos, paneles, streamings, sesiones musicales y experiencias que conecta arte, tecnología y cultura.",
       },
-      { property: "og:title", content: "Immersive by SYNDCT" },
+      { property: "og:title", content: "Immersive by SYNDCT & TechnoSur" },
       {
         property: "og:description",
         content:
@@ -30,33 +30,33 @@ export const Route = createFileRoute("/")({
 const benefits = [
   {
     icon: GraduationCap,
-    title: "Contenido educativo",
-    desc: "Cápsulas y masterclasses con expertos que expanden tu mirada cultural y tecnológica.",
+    title: "Ciencia",
+    desc: "Conversaciones y experiencias que acercan el conocimiento a nuevos públicos mediante formatos inmersivos y participativos.",
   },
   {
     icon: Mic,
-    title: "Conversaciones con expertos",
-    desc: "Paneles y charlas con creadores, artistas y tecnólogos redefiniendo lo posible.",
+    title: "Agenda académica",
+    desc: "Paneles con artistas, investigadores y líderes de la industria que analizan el futuro de la música, la tecnología y la cultura.",
   },
   {
     icon: Music,
-    title: "Experiencias musicales",
-    desc: "Sesiones en vivo, sets curados y ediciones sonoras pensadas para el domo.",
+    title: "Live experiences",
+    desc: "Sesiones audiovisuales concebidas específicamente para el domo, donde música, visuales y narrativa evolucionan como una sola experiencia.",
   },
   {
     icon: Palette,
-    title: "Arte & entretenimiento",
-    desc: "Arte digital, visuales generativos y piezas que borran los límites entre disciplinas.",
+    title: "Arte & tecnología",
+    desc: "Proyectos que integran inteligencia artificial, visuales generativos y diseño inmersivo para expandir los límites de la creación contemporánea.",
   },
 ];
 
 const formats = [
   { icon: Users, label: "Paneles" },
-  { icon: Radio, label: "Streamings" },
-  { icon: Headphones, label: "Sesiones musicales" },
+  { icon: Radio, label: "Streaming" },
+  { icon: Headphones, label: "Live Sessions" },
   { icon: Mic, label: "Charlas" },
-  { icon: Video, label: "Cápsulas educativas" },
-  { icon: Calendar, label: "Eventos especiales" },
+  { icon: Video, label: "Laboratorios" },
+  { icon: Calendar, label: "Ediciones Especiales" },
 ];
 
 function Landing() {
@@ -70,7 +70,7 @@ function Landing() {
       {/* Nav */}
       <header className="relative z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-          <img src={imagotipo} alt="Immersive by SYNDCT" className="h-20 w-auto md:h-28" />
+          <img src={imagotipo} alt="Immersive by SYNDCT & TechnoSur" className="h-20 w-auto md:h-28" />
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a href="#experiencia" className="transition-colors hover:text-foreground">Experiencia</a>
             <a href="#formatos" className="transition-colors hover:text-foreground">Formatos</a>
@@ -91,18 +91,20 @@ function Landing() {
           <div className="md:col-span-7">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs uppercase tracking-[0.2em] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-prism animate-shimmer" />
-              Nuevo · Plataforma inmersiva
+              PLATAFORMA CULTURAL · EXPERIENCIAS INMERSIVAS
             </div>
 
             <h1 className="font-display text-5xl leading-[0.95] tracking-tight md:text-7xl lg:text-8xl">
-              Immersive
+              Immersive by
               <br />
-              <span className="text-prism animate-shimmer">by SYNDCT</span>
+              <span className="text-prism animate-shimmer">SYNDCT & TechnoSur</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Plataforma de contenidos, experiencias, paneles, streamings, música, arte,
-              tecnología y educación. Un espacio para habitar la cultura.
+              Una plataforma cultural que explora la convergencia entre ciencia, música y tecnología a 
+              través de experiencias inmersivas. Diseñamos encuentros donde el conocimiento, 
+              la creación audiovisual y la innovación dialogan para transformar la manera en 
+              que habitamos los espacios culturales.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -110,21 +112,21 @@ function Landing() {
                 href="#experiencia"
                 className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition-transform hover:scale-[1.02]"
               >
-                Explorar Immersive
+                Explorar Session I
                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
               <a
                 href="#cta"
                 className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
               >
-                Recibir novedades
+                Conocer la agenda
               </a>
             </div>
 
             <div className="mt-14 flex items-center gap-6 text-xs uppercase tracking-[0.25em] text-muted-foreground">
-              <span>Música</span>
+              <span>Ciencia</span>
               <span className="h-px w-6 bg-white/20" />
-              <span>Arte</span>
+              <span>Música</span>
               <span className="h-px w-6 bg-white/20" />
               <span>Tecnología</span>
             </div>
@@ -267,14 +269,15 @@ function Landing() {
             <div className="max-w-2xl">
               <p className="mb-4 text-xs uppercase tracking-[0.3em] text-muted-foreground">Comunidad</p>
               <h2 className="font-display text-4xl leading-tight md:text-6xl">
-                Un mismo lente,
+                Un mismo proyecto,
                 <br />
                 <span className="text-prism">múltiples frecuencias</span>.
               </h2>
             </div>
             <p className="max-w-sm text-muted-foreground">
               Immersive conecta creadores, artistas, tecnólogos, marcas y audiencias
-              alrededor de experiencias que valen la pena habitar.
+              alrededor de una misma convicción: las mejores experiencias nacen
+              cuando distintas disciplinas deciden crear juntas.
             </p>
           </div>
 
