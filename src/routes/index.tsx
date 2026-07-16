@@ -2,7 +2,8 @@ import heroImage from "@/assets/immersive-hero.jpg";
 import imagotipo from "@/assets/immersive-imagotipo.png";
 import isotipo from "@/assets/immersive-isotipo.png";
 import textureImage from "@/assets/immersive-texture.jpg";
-import { createFileRoute } from "@tanstack/react-router";
+import { Socials } from "@/components/chrome";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, Calendar, Cpu, GraduationCap, Headphones, Mic, Music, Palette, Radio, Sparkles, Users, Video } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -70,18 +71,18 @@ function Landing() {
       {/* Nav */}
       <header className="relative z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-          <img src={imagotipo} alt="Immersive by SYNDCT & TechnoSur" className="h-20 w-auto md:h-28" />
+          <img src={imagotipo} alt="Immersive by SYNDCT & TechnoSur" className="h-40 w-auto md:h-56" />
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
             <a href="#experiencia" className="transition-colors hover:text-foreground">Experiencia</a>
             <a href="#formatos" className="transition-colors hover:text-foreground">Formatos</a>
             <a href="#comunidad" className="transition-colors hover:text-foreground">Comunidad</a>
           </nav>
-          <a
-            href="#cta"
+          <Link
+            to="/sessions"
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-foreground backdrop-blur transition-colors hover:bg-white/10"
           >
-            Unirme <ArrowUpRight className="h-4 w-4" />
-          </a>
+            Ver sesiones <ArrowUpRight className="h-4 w-4" />
+          </Link>
         </div>
       </header>
 
@@ -108,19 +109,19 @@ function Landing() {
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
-              <a
-                href="#experiencia"
+              <Link
+                to="/sessions"
                 className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition-transform hover:scale-[1.02]"
               >
-                Explorar Session I
+                Comprar entradas
                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
-              <a
-                href="#cta"
+              </Link>
+              <Link
+                to="/sessions"
                 className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
               >
                 Conocer la agenda
-              </a>
+              </Link>
             </div>
 
             <div className="mt-14 flex items-center gap-6 text-xs uppercase tracking-[0.25em] text-muted-foreground">
@@ -351,11 +352,9 @@ function Landing() {
       <footer className="relative z-10 border-t border-white/5 py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 md:flex-row">
           <div className="flex items-center gap-3">
-            <img src={imagotipo} alt="Immersive by SYNDCT" className="h-6 w-auto opacity-80" />
+            <img src={imagotipo} alt="Immersive by SYNDCT" className="h-40 w-auto opacity-90 md:h-56" />
           </div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-            Música · Arte · Tecnología
-          </p>
+          <Socials />
           <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} SYNDCT</p>
         </div>
       </footer>

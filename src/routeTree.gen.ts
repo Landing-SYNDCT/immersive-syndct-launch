@@ -10,33 +10,102 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SessionsIndexRouteImport } from './routes/sessions.index'
+import { Route as OrderIndexRouteImport } from './routes/order.index'
+import { Route as OrderOrderIdRouteImport } from './routes/order.$orderId'
+import { Route as SessionsSlugIndexRouteImport } from './routes/sessions.$slug.index'
+import { Route as SessionsSlugCheckoutRouteImport } from './routes/sessions.$slug.checkout'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SessionsIndexRoute = SessionsIndexRouteImport.update({
+  id: '/sessions/',
+  path: '/sessions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderIndexRoute = OrderIndexRouteImport.update({
+  id: '/order/',
+  path: '/order/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderOrderIdRoute = OrderOrderIdRouteImport.update({
+  id: '/order/$orderId',
+  path: '/order/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessionsSlugIndexRoute = SessionsSlugIndexRouteImport.update({
+  id: '/sessions/$slug/',
+  path: '/sessions/$slug/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessionsSlugCheckoutRoute = SessionsSlugCheckoutRouteImport.update({
+  id: '/sessions/$slug/checkout',
+  path: '/sessions/$slug/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/order/$orderId': typeof OrderOrderIdRoute
+  '/order/': typeof OrderIndexRoute
+  '/sessions/': typeof SessionsIndexRoute
+  '/sessions/$slug/checkout': typeof SessionsSlugCheckoutRoute
+  '/sessions/$slug/': typeof SessionsSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/order/$orderId': typeof OrderOrderIdRoute
+  '/order': typeof OrderIndexRoute
+  '/sessions': typeof SessionsIndexRoute
+  '/sessions/$slug/checkout': typeof SessionsSlugCheckoutRoute
+  '/sessions/$slug': typeof SessionsSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/order/$orderId': typeof OrderOrderIdRoute
+  '/order/': typeof OrderIndexRoute
+  '/sessions/': typeof SessionsIndexRoute
+  '/sessions/$slug/checkout': typeof SessionsSlugCheckoutRoute
+  '/sessions/$slug/': typeof SessionsSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/order/$orderId'
+    | '/order/'
+    | '/sessions/'
+    | '/sessions/$slug/checkout'
+    | '/sessions/$slug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/order/$orderId'
+    | '/order'
+    | '/sessions'
+    | '/sessions/$slug/checkout'
+    | '/sessions/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/order/$orderId'
+    | '/order/'
+    | '/sessions/'
+    | '/sessions/$slug/checkout'
+    | '/sessions/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OrderOrderIdRoute: typeof OrderOrderIdRoute
+  OrderIndexRoute: typeof OrderIndexRoute
+  SessionsIndexRoute: typeof SessionsIndexRoute
+  SessionsSlugCheckoutRoute: typeof SessionsSlugCheckoutRoute
+  SessionsSlugIndexRoute: typeof SessionsSlugIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,12 +117,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sessions/': {
+      id: '/sessions/'
+      path: '/sessions'
+      fullPath: '/sessions/'
+      preLoaderRoute: typeof SessionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order/': {
+      id: '/order/'
+      path: '/order'
+      fullPath: '/order/'
+      preLoaderRoute: typeof OrderIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order/$orderId': {
+      id: '/order/$orderId'
+      path: '/order/$orderId'
+      fullPath: '/order/$orderId'
+      preLoaderRoute: typeof OrderOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessions/$slug/': {
+      id: '/sessions/$slug/'
+      path: '/sessions/$slug'
+      fullPath: '/sessions/$slug/'
+      preLoaderRoute: typeof SessionsSlugIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessions/$slug/checkout': {
+      id: '/sessions/$slug/checkout'
+      path: '/sessions/$slug/checkout'
+      fullPath: '/sessions/$slug/checkout'
+      preLoaderRoute: typeof SessionsSlugCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OrderOrderIdRoute: OrderOrderIdRoute,
+  OrderIndexRoute: OrderIndexRoute,
+  SessionsIndexRoute: SessionsIndexRoute,
+  SessionsSlugCheckoutRoute: SessionsSlugCheckoutRoute,
+  SessionsSlugIndexRoute: SessionsSlugIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
