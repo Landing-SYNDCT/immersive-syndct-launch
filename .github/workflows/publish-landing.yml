@@ -10,12 +10,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      # Build the app as a Node server (nitro node-server preset).
-      - name: Build (SSR)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Detects your package manager (bun/pnpm/yarn/npm), installs, and builds.
+      - name: Install & build
+        env:
+          NITRO_PRESET: node-server
         run: |
-          bun install --frozen-lockfile
-          NITRO_PRESET=node-server bun run build
+          if [ -f bun.lock ] || [ -f bun.lockb ]; then
+            curl -fsSL https://bun.sh/install | bash
+            export PATH="$HOME/.bun/bin:$PATH"
+            bun install --frozen-lockfile && PM="bun run"
+          elif [ -f pnpm-lock.yaml ]; then
+            corepack enable && pnpm install --frozen-lockfile && PM="pnpm run"
+          elif [ -f yarn.lock ]; then
+            corepack enable && yarn install --immutable && PM="yarn"
+          else
+            npm ci && PM="npm run"
+          fi
+          $PM build
       - name: Package .output
         run: tar czf artifact.tgz -C .output .
       - name: Publish to Underpass
