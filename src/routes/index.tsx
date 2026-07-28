@@ -1,6 +1,7 @@
 import textureImage from "@/assets/immersive-texture.jpg";
 import { SiteFooter, SiteHeader } from "@/components/chrome";
 import { HeroDome } from "@/components/hero-dome";
+import { SITE_URL } from "@/lib/seo";
 import { UNDERPASS_ACCOUNT_ID, listPublicEvents } from "@/lib/underpass";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
@@ -36,8 +37,10 @@ export const Route = createFileRoute("/")({
           "Música, arte & tecnología en un mismo pulso: experiencias inmersivas en 360° en el Centro Cultural y Tecnológico YAWA, Cali.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: SITE_URL },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: SITE_URL }],
   }),
   component: Landing,
 });

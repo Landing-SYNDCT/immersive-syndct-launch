@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /order
+Disallow: /sessions/*/checkout
+
+Sitemap: https://www.immersivelive.co/sitemap.xml

@@ -1,6 +1,7 @@
 import { CenterState, PageShell } from "@/components/chrome";
 import { captureAttribution, readAttribution } from "@/lib/attribution";
 import { initOrganizerPixels } from "@/lib/pixels";
+import { SITE_URL } from "@/lib/seo";
 import {
   eventCoverUrl,
   formatCOP,
@@ -17,6 +18,62 @@ import { ArrowLeft, CalendarDays, Check, Loader2, MapPin, Minus, Plus, Tag, X } 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export const Route = createFileRoute("/sessions/$slug/")({
+  // Server-side loader (public view: no sales link / unlocked stages) so the
+  // event content, title and social preview are in the SSR HTML. The
+  // interactive query below reuses this as initialData and refetches with
+  // link/stage context on the client.
+  loader: ({ params }) => getEventWithDetails(params.slug).catch(() => null),
+  head: ({ loaderData, params }) => {
+    const url = `${SITE_URL}/sessions/${params.slug}`;
+    if (!loaderData) return { links: [{ rel: "canonical", href: url }] };
+    const title = `${loaderData.name} — Immersive`;
+    const description =
+      loaderData.description?.slice(0, 160) ||
+      "Sesión inmersiva en el domo de YAWA, Cali. Consigue tus entradas.";
+    const cover = eventCoverUrl(loaderData);
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      name: loaderData.name,
+      description,
+      startDate: loaderData.start_date,
+      endDate: loaderData.end_date,
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      eventStatus: "https://schema.org/EventScheduled",
+      url,
+      ...(cover ? { image: [cover] } : {}),
+      location: {
+        "@type": "Place",
+        name: loaderData.location?.venue || "Centro Cultural y Tecnológico YAWA",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: loaderData.location?.city || "Cali",
+          addressCountry: "CO",
+        },
+      },
+      organizer: { "@type": "Organization", name: "SYNDCT & TechnoSur", url: SITE_URL },
+    };
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:type", content: "event" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        ...(cover
+          ? [
+              { property: "og:image", content: cover },
+              { name: "twitter:image", content: cover },
+            ]
+          : []),
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
+    };
+  },
   component: EventPage,
 });
 
@@ -24,6 +81,7 @@ export const CHECKOUT_DATA_KEY = "up:checkoutData";
 
 function EventPage() {
   const { slug } = Route.useParams();
+  const ssrEvent = Route.useLoaderData();
 
   // Capture attribution (?promoter/?link/?ref/?promo) and remember the sales link.
   const [link, setLink] = useState<string | undefined>(undefined);
@@ -35,9 +93,19 @@ function EventPage() {
   // Selling stages unlocked by a promo code — widens what the event fetch returns.
   const [unlockedStages, setUnlockedStages] = useState<string[]>([]);
 
-  const { data: event, isLoading, isError, error } = useQuery({
+  const isPublicView = !link && unlockedStages.length === 0;
+  const {
+    data: event,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["event", slug, link, unlockedStages.join(",")],
     queryFn: () => getEventWithDetails(slug, link, unlockedStages),
+    // The loader already fetched the public view on the server — reuse it and
+    // only hit the network again when link/stage context changes the response.
+    initialData: isPublicView ? (ssrEvent ?? undefined) : undefined,
+    staleTime: isPublicView && ssrEvent ? 30_000 : 0,
   });
 
   useEffect(() => {
@@ -116,14 +184,22 @@ function TicketSelection({
       if (!applied?.effects) return base;
       // OVERRIDE_PRICE quantity_limit caps this ticket type.
       for (const e of applied.effects) {
-        if (e.effect_type === "OVERRIDE_PRICE" && e.ticket_type_id === t.ticketTypeId && e.quantity_limit) {
+        if (
+          e.effect_type === "OVERRIDE_PRICE" &&
+          e.ticket_type_id === t.ticketTypeId &&
+          e.quantity_limit
+        ) {
           return Math.min(base, e.quantity_limit);
         }
       }
       // A stage unlocked by the promo caps at 1 (pair-aware).
       const pairs = applied.unlocked_pricings;
       const unlockedHere = pairs?.length
-        ? pairs.some((u) => u.selling_stage_id === t.sellingStageId && (!u.ticket_type_id || u.ticket_type_id === t.ticketTypeId))
+        ? pairs.some(
+            (u) =>
+              u.selling_stage_id === t.sellingStageId &&
+              (!u.ticket_type_id || u.ticket_type_id === t.ticketTypeId),
+          )
         : applied.unlocked_stages?.includes(t.sellingStageId);
       return unlockedHere ? Math.min(base, 1) : base;
     },
@@ -160,7 +236,11 @@ function TicketSelection({
         }
       } else if (e.effect_type === "FIXED_AMOUNT_DISCOUNT" && e.discount_value) {
         d += e.discount_value;
-      } else if (e.effect_type === "OVERRIDE_PRICE" && e.ticket_type_id && e.override_price != null) {
+      } else if (
+        e.effect_type === "OVERRIDE_PRICE" &&
+        e.ticket_type_id &&
+        e.override_price != null
+      ) {
         let remaining = e.quantity_limit ?? Infinity;
         for (const [id, n] of Object.entries(qty)) {
           const t = ticketsById[id];
@@ -193,7 +273,9 @@ function TicketSelection({
             /* ignore */
           }
           const tokens = result.unlocked_pricings?.length
-            ? result.unlocked_pricings.map((u) => (u.ticket_type_id ? `${u.selling_stage_id}:${u.ticket_type_id}` : u.selling_stage_id))
+            ? result.unlocked_pricings.map((u) =>
+                u.ticket_type_id ? `${u.selling_stage_id}:${u.ticket_type_id}` : u.selling_stage_id,
+              )
             : result.unlocked_stages;
           if (tokens?.length) onUnlock(tokens);
         } else {
@@ -217,7 +299,8 @@ function TicketSelection({
   }, [slug]);
 
   const removePromo = () => {
-    const hadUnlock = (applied?.unlocked_stages?.length ?? 0) > 0 || (applied?.unlocked_pricings?.length ?? 0) > 0;
+    const hadUnlock =
+      (applied?.unlocked_stages?.length ?? 0) > 0 || (applied?.unlocked_pricings?.length ?? 0) > 0;
     setApplied(null);
     setPromoError(null);
     try {
@@ -238,7 +321,13 @@ function TicketSelection({
       .filter(([, n]) => n > 0)
       .map(([id, n]) => {
         const t = ticketsById[id];
-        return { ticketTypeId: t.ticketTypeId, sellingStageId: t.sellingStageId, quantity: n, name: t.name, price: t.price };
+        return {
+          ticketTypeId: t.ticketTypeId,
+          sellingStageId: t.sellingStageId,
+          quantity: n,
+          name: t.name,
+          price: t.price,
+        };
       });
     const payload = {
       slug,
@@ -268,13 +357,20 @@ function TicketSelection({
     <PageShell>
       {/* Event header */}
       <div className="mx-auto max-w-6xl px-6 pt-2">
-        <Link to="/sessions" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+        <Link
+          to="/sessions"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Todas las sesiones
         </Link>
       </div>
       <div className="mx-auto mt-4 grid max-w-6xl gap-8 px-6 md:grid-cols-2 md:items-center">
         <div className="relative aspect-[4/3] overflow-hidden rounded-3xl ring-prism">
-          {cover ? <img src={cover} alt={event.name} className="h-full w-full object-cover" /> : <div className="h-full w-full bg-prism opacity-30" />}
+          {cover ? (
+            <img src={cover} alt={event.name} className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full bg-prism opacity-30" />
+          )}
         </div>
         <div>
           <h1 className="font-display text-3xl leading-tight md:text-5xl">{event.name}</h1>
@@ -291,7 +387,11 @@ function TicketSelection({
               </p>
             ) : null}
           </div>
-          {event.description ? <p className="mt-5 whitespace-pre-line text-sm text-muted-foreground">{event.description}</p> : null}
+          {event.description ? (
+            <p className="mt-5 whitespace-pre-line text-sm text-muted-foreground">
+              {event.description}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -300,7 +400,9 @@ function TicketSelection({
         <section className="lg:col-span-2">
           <h2 className="font-display text-2xl">Tipos de entrada</h2>
           {event.tickets.length === 0 ? (
-            <div className="surface-card mt-5 rounded-2xl p-6 text-muted-foreground">No hay entradas disponibles para esta sesión por ahora.</div>
+            <div className="surface-card mt-5 rounded-2xl p-6 text-muted-foreground">
+              No hay entradas disponibles para esta sesión por ahora.
+            </div>
           ) : (
             <div className="mt-5 space-y-8">
               {byLocality.map((group) => (
@@ -308,7 +410,9 @@ function TicketSelection({
                   <div className="flex items-center gap-3 border-b border-white/10 pb-2">
                     <span className="h-2 w-2 rounded-full bg-prism" />
                     <h3 className="font-display text-lg">{group.name}</h3>
-                    {group.description ? <span className="text-sm text-muted-foreground">— {group.description}</span> : null}
+                    {group.description ? (
+                      <span className="text-sm text-muted-foreground">— {group.description}</span>
+                    ) : null}
                   </div>
                   <div className="space-y-3">
                     {group.tickets.map((t) => (
@@ -342,7 +446,11 @@ function TicketSelection({
                     <Check className="h-4 w-4 text-[var(--prism-green)]" />
                     {applied.promo_code?.code}
                   </span>
-                  <button onClick={removePromo} className="text-muted-foreground hover:text-foreground" aria-label="Quitar código">
+                  <button
+                    onClick={removePromo}
+                    className="text-muted-foreground hover:text-foreground"
+                    aria-label="Quitar código"
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -375,7 +483,9 @@ function TicketSelection({
                       {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
                     </button>
                   </div>
-                  {promoError ? <p className="mt-2 text-xs text-destructive">{promoError}</p> : null}
+                  {promoError ? (
+                    <p className="mt-2 text-xs text-destructive">{promoError}</p>
+                  ) : null}
                 </div>
               )}
             </div>
@@ -391,7 +501,11 @@ function TicketSelection({
                         <div key={id} className="flex justify-between">
                           <span className="text-muted-foreground">
                             {n}× {t?.name}
-                            {t && t.groupSize > 1 ? <span className="block text-xs text-[var(--prism-violet)]">= {n * t.groupSize} entradas</span> : null}
+                            {t && t.groupSize > 1 ? (
+                              <span className="block text-xs text-[var(--prism-violet)]">
+                                = {n * t.groupSize} entradas
+                              </span>
+                            ) : null}
                           </span>
                           <span>{formatCOP((t?.price ?? 0) * n)}</span>
                         </div>
@@ -424,13 +538,19 @@ function TicketSelection({
                   disabled={navigating}
                   className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition-transform hover:scale-[1.01] disabled:opacity-60"
                 >
-                  {navigating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continuar al checkout"}
+                  {navigating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Continuar al checkout"
+                  )}
                 </button>
               </>
             ) : (
               <div className="mt-5 border-t border-white/10 py-6 text-center">
                 <p className="text-sm text-muted-foreground">Tu carrito está vacío</p>
-                <p className="mt-1 text-xs text-muted-foreground/70">Toca una entrada para agregarla</p>
+                <p className="mt-1 text-xs text-muted-foreground/70">
+                  Toca una entrada para agregarla
+                </p>
               </div>
             )}
           </div>
@@ -507,24 +627,44 @@ function TicketCard({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex-1 lg:pr-6">
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <h4 className={`font-display text-lg ${soldOut ? "text-muted-foreground" : ""}`}>{ticket.name}</h4>
+            <h4 className={`font-display text-lg ${soldOut ? "text-muted-foreground" : ""}`}>
+              {ticket.name}
+            </h4>
             {selected ? (
               <span className="inline-flex items-center gap-1 rounded bg-white/15 px-2 py-0.5 text-xs font-semibold">
                 <Check className="h-3 w-3" />
                 {qty}
               </span>
             ) : null}
-            {soldOut ? <span className="rounded bg-destructive/20 px-2 py-0.5 text-xs font-semibold text-destructive">Agotado</span> : null}
-            <span className="rounded bg-white/10 px-2 py-0.5 text-xs text-muted-foreground">{ticket.sellingStageName}</span>
+            {soldOut ? (
+              <span className="rounded bg-destructive/20 px-2 py-0.5 text-xs font-semibold text-destructive">
+                Agotado
+              </span>
+            ) : null}
+            <span className="rounded bg-white/10 px-2 py-0.5 text-xs text-muted-foreground">
+              {ticket.sellingStageName}
+            </span>
             {ticket.groupSize > 1 ? (
-              <span className="rounded bg-[var(--prism-violet)]/25 px-2 py-0.5 text-xs font-semibold">Incluye {ticket.groupSize} entradas</span>
+              <span className="rounded bg-[var(--prism-violet)]/25 px-2 py-0.5 text-xs font-semibold">
+                Incluye {ticket.groupSize} entradas
+              </span>
             ) : null}
           </div>
-          {ticket.description ? <p className="mb-1 text-sm text-muted-foreground">{ticket.description}</p> : null}
-          {!soldOut ? <p className="text-xs text-muted-foreground">{showExact ? `${ticket.available} disponibles` : "Disponible"}</p> : null}
+          {ticket.description ? (
+            <p className="mb-1 text-sm text-muted-foreground">{ticket.description}</p>
+          ) : null}
+          {!soldOut ? (
+            <p className="text-xs text-muted-foreground">
+              {showExact ? `${ticket.available} disponibles` : "Disponible"}
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center justify-between gap-4 lg:flex-col lg:items-end">
-          <p className={`font-display text-2xl ${soldOut ? "text-muted-foreground line-through" : ""}`}>{formatCOP(ticket.price)}</p>
+          <p
+            className={`font-display text-2xl ${soldOut ? "text-muted-foreground line-through" : ""}`}
+          >
+            {formatCOP(ticket.price)}
+          </p>
           {!soldOut ? (
             <div className="flex items-center gap-3">
               <button

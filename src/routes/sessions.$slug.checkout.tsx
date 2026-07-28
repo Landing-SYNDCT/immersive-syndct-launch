@@ -9,11 +9,19 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { CHECKOUT_DATA_KEY } from "./sessions.$slug.index";
 
 export const Route = createFileRoute("/sessions/$slug/checkout")({
-  head: () => ({ meta: [{ title: "Checkout — Immersive" }] }),
+  head: () => ({
+    meta: [{ title: "Checkout — Immersive" }, { name: "robots", content: "noindex" }],
+  }),
   component: CheckoutPage,
 });
 
-type CheckoutItem = { ticketTypeId: string; sellingStageId: string; quantity: number; name: string; price: number };
+type CheckoutItem = {
+  ticketTypeId: string;
+  sellingStageId: string;
+  quantity: number;
+  name: string;
+  price: number;
+};
 type CheckoutData = {
   slug: string;
   eventId: string;
@@ -149,7 +157,8 @@ function CheckoutForm({ data, slug }: { data: CheckoutData; slug: string }) {
   function onPay() {
     setFormError(null);
     if (!customer.name.trim()) return setFormError("Ingresa tu nombre completo.");
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) return setFormError("Ingresa un correo válido.");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email))
+      return setFormError("Ingresa un correo válido.");
     if (!customer.document_number.trim()) return setFormError("Ingresa tu número de documento.");
     if (!acceptTerms) return setFormError("Debes aceptar los términos para continuar.");
     checkout.mutate();
@@ -175,19 +184,37 @@ function CheckoutForm({ data, slug }: { data: CheckoutData; slug: string }) {
             <h2 className="font-display text-xl">Tus datos</h2>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <Field label="Nombre completo" className="sm:col-span-2">
-                <input className={inputClass} value={customer.name} autoComplete="name" onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))} />
+                <input
+                  className={inputClass}
+                  value={customer.name}
+                  autoComplete="name"
+                  onChange={(e) => setCustomer((c) => ({ ...c, name: e.target.value }))}
+                />
               </Field>
               <Field label="Correo electrónico">
-                <input className={inputClass} type="email" value={customer.email} autoComplete="email" onChange={(e) => setCustomer((c) => ({ ...c, email: e.target.value }))} />
+                <input
+                  className={inputClass}
+                  type="email"
+                  value={customer.email}
+                  autoComplete="email"
+                  onChange={(e) => setCustomer((c) => ({ ...c, email: e.target.value }))}
+                />
               </Field>
               <Field label="Teléfono (opcional)">
-                <input className={inputClass} value={customer.phone} autoComplete="tel" onChange={(e) => setCustomer((c) => ({ ...c, phone: e.target.value }))} />
+                <input
+                  className={inputClass}
+                  value={customer.phone}
+                  autoComplete="tel"
+                  onChange={(e) => setCustomer((c) => ({ ...c, phone: e.target.value }))}
+                />
               </Field>
               <Field label="Tipo de documento">
                 <select
                   className={inputClass}
                   value={customer.document_type}
-                  onChange={(e) => setCustomer((c) => ({ ...c, document_type: e.target.value as DocumentType }))}
+                  onChange={(e) =>
+                    setCustomer((c) => ({ ...c, document_type: e.target.value as DocumentType }))
+                  }
                 >
                   {DOC_TYPES.map((d) => (
                     <option key={d.value} value={d.value} className="bg-card">
@@ -197,15 +224,26 @@ function CheckoutForm({ data, slug }: { data: CheckoutData; slug: string }) {
                 </select>
               </Field>
               <Field label="Número de documento">
-                <input className={inputClass} inputMode="numeric" value={customer.document_number} onChange={(e) => setCustomer((c) => ({ ...c, document_number: e.target.value }))} />
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  value={customer.document_number}
+                  onChange={(e) => setCustomer((c) => ({ ...c, document_number: e.target.value }))}
+                />
               </Field>
             </div>
 
             {canSplit ? (
               <div className="mt-6 border-t border-white/10 pt-5">
                 <h3 className="font-display text-lg">Pago en cuotas</h3>
-                <p className="mt-1 text-xs text-muted-foreground">Divide tu compra. Se aplican cargos de financiación por cuota.</p>
-                <select className={`${inputClass} mt-3`} value={installments} onChange={(e) => setInstallments(Number(e.target.value))}>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Divide tu compra. Se aplican cargos de financiación por cuota.
+                </p>
+                <select
+                  className={`${inputClass} mt-3`}
+                  value={installments}
+                  onChange={(e) => setInstallments(Number(e.target.value))}
+                >
                   {Array.from({ length: data.maxPaymentCount }, (_, i) => i + 1).map((n) => (
                     <option key={n} value={n} className="bg-card">
                       {n === 1 ? "Pago único" : `${n} cuotas`}
@@ -214,7 +252,8 @@ function CheckoutForm({ data, slug }: { data: CheckoutData; slug: string }) {
                 </select>
                 {schedule ? (
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Primer pago ≈ {formatCOP(schedule.first)}, luego {schedule.count - 1}× ≈ {formatCOP(schedule.rest)} (aprox.)
+                    Primer pago ≈ {formatCOP(schedule.first)}, luego {schedule.count - 1}× ≈{" "}
+                    {formatCOP(schedule.rest)} (aprox.)
                   </p>
                 ) : null}
               </div>
@@ -257,13 +296,23 @@ function CheckoutForm({ data, slug }: { data: CheckoutData; slug: string }) {
             </div>
 
             <label className="mt-5 flex cursor-pointer items-start gap-2 text-xs text-muted-foreground">
-              <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--prism-indigo)]" />
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+                className="mt-0.5 h-4 w-4 accent-[var(--prism-indigo)]"
+              />
               <span>
                 Acepto los términos y condiciones
                 {data.organizerTermsUrl ? (
                   <>
                     {" "}
-                    <a href={data.organizerTermsUrl} target="_blank" rel="noreferrer" className="text-foreground underline underline-offset-2">
+                    <a
+                      href={data.organizerTermsUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-foreground underline underline-offset-2"
+                    >
                       del organizador
                     </a>
                   </>
@@ -274,7 +323,10 @@ function CheckoutForm({ data, slug }: { data: CheckoutData; slug: string }) {
 
             {formError ? <p className="mt-3 text-sm text-destructive">{formError}</p> : null}
             {checkout.isError ? (
-              <p className="mt-3 text-sm text-destructive">{(checkout.error as Error)?.message ?? "No pudimos iniciar el pago. Intenta de nuevo."}</p>
+              <p className="mt-3 text-sm text-destructive">
+                {(checkout.error as Error)?.message ??
+                  "No pudimos iniciar el pago. Intenta de nuevo."}
+              </p>
             ) : null}
 
             <button
@@ -303,10 +355,20 @@ function CheckoutForm({ data, slug }: { data: CheckoutData; slug: string }) {
 const inputClass =
   "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none placeholder:text-muted-foreground focus:border-white/30";
 
-function Field({ label, className = "", children }: { label: string; className?: string; children: ReactNode }) {
+function Field({
+  label,
+  className = "",
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: ReactNode;
+}) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
+      <span className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
       {children}
     </label>
   );

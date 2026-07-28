@@ -7,7 +7,9 @@ import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 
 export const Route = createFileRoute("/order/$orderId")({
-  head: () => ({ meta: [{ title: "Estado de tu compra — Immersive" }] }),
+  head: () => ({
+    meta: [{ title: "Estado de tu compra — Immersive" }, { name: "robots", content: "noindex" }],
+  }),
   component: OrderStatusPage,
 });
 
@@ -77,7 +79,10 @@ function OrderStatusPage() {
           }
         >
           <p className="mt-2 text-sm text-muted-foreground">
-            Total pagado: <span className="text-foreground">{formatCOP(data?.paid_amount ?? data?.total_amount ?? 0)}</span>
+            Total pagado:{" "}
+            <span className="text-foreground">
+              {formatCOP(data?.paid_amount ?? data?.total_amount ?? 0)}
+            </span>
           </p>
           <div className="mt-8">
             <Link

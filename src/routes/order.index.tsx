@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
  * get a friendly nudge back to the agenda.
  */
 export const Route = createFileRoute("/order/")({
+  head: () => ({ meta: [{ name: "robots", content: "noindex" }] }),
   component: OrderBridge,
 });
 

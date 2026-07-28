@@ -1,34 +1,35 @@
 import { CenterState, PageShell } from "@/components/chrome";
+import { SITE_URL } from "@/lib/seo";
 import {
   eventCoverUrl,
   formatEventDate,
   listPublicEvents,
-  UNDERPASS_ACCOUNT_ID,
   type EventSummary,
 } from "@/lib/underpass";
-import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, CalendarDays, MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/sessions/")({
+  // Server-side loader so the agenda (and links to each session) is in the SSR
+  // HTML — crawlers discover event pages from here.
+  loader: () => listPublicEvents().catch(() => null),
   head: () => ({
     meta: [
       { title: "Sesiones — Immersive by SYNDCT & TechnoSur" },
       {
         name: "description",
-        content: "Agenda de sesiones y experiencias inmersivas del domo. Consigue tus entradas.",
+        content:
+          "Agenda de sesiones y experiencias inmersivas en el domo de YAWA, Cali. Consigue tus entradas.",
       },
     ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/sessions` }],
   }),
   component: Sessions,
 });
 
 function Sessions() {
-  const { data: events, isLoading, isError, error } = useQuery({
-    queryKey: ["public-events", UNDERPASS_ACCOUNT_ID],
-    queryFn: () => listPublicEvents(),
-    enabled: Boolean(UNDERPASS_ACCOUNT_ID),
-  });
+  const events = Route.useLoaderData();
+  const isError = events === null;
 
   return (
     <PageShell>
@@ -42,15 +43,9 @@ function Sessions() {
         </p>
       </div>
 
-      {!UNDERPASS_ACCOUNT_ID ? (
-        <CenterState title="Agenda en configuración">
-          Estamos preparando las próximas sesiones. Vuelve pronto.
-        </CenterState>
-      ) : isLoading ? (
-        <SessionsSkeleton />
-      ) : isError ? (
+      {isError ? (
         <CenterState title="No pudimos cargar la agenda">
-          {(error as Error)?.message ?? "Intenta de nuevo en unos minutos."}
+          Intenta de nuevo en unos minutos.
         </CenterState>
       ) : !events || events.length === 0 ? (
         <CenterState title="Aún no hay sesiones publicadas">
@@ -109,15 +104,5 @@ function SessionCard({ event }: { event: EventSummary }) {
         </span>
       </div>
     </Link>
-  );
-}
-
-function SessionsSkeleton() {
-  return (
-    <div className="mx-auto grid max-w-6xl gap-5 px-6 sm:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="surface-card h-80 animate-pulse rounded-3xl" />
-      ))}
-    </div>
   );
 }

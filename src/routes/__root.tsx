@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { OG_IMAGE, SITE_NAME } from "../lib/seo";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -77,17 +78,33 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Immersive by SYNDCT & TechnoSur" },
-      { name: "description", content: "Plataforma de contenidos, experiencias y música por SYNDCT — arte, tecnología y educación en un solo espacio inmersivo." },
+      { title: "Immersive — Música, arte & tecnología en el domo de YAWA, Cali" },
+      {
+        name: "description",
+        content:
+          "Sesiones inmersivas, paneles y experiencias audiovisuales en 360° bajo el domo del Centro Cultural y Tecnológico YAWA, en Cali. Por SYNDCT & TechnoSur.",
+      },
       { name: "author", content: "SYNDCT" },
-      { property: "og:title", content: "Immersive by SYNDCT" },
-      { property: "og:description", content: "Plataforma de contenidos, experiencias y música por SYNDCT — arte, tecnología y educación en un solo espacio inmersivo." },
+      { property: "og:site_name", content: SITE_NAME },
+      { property: "og:locale", content: "es_CO" },
+      { property: "og:title", content: "Immersive — el domo de YAWA, Cali" },
+      {
+        property: "og:description",
+        content:
+          "Música, arte & tecnología en un mismo pulso: experiencias inmersivas en 360° en el Centro Cultural y Tecnológico YAWA, Cali.",
+      },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Immersive by SYNDCT" },
-      { name: "twitter:description", content: "Plataforma de contenidos, experiencias y música por SYNDCT — arte, tecnología y educación en un solo espacio inmersivo." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f23fe04-a42f-46e4-bd2d-fdf732e611bb/id-preview-6890e19a--308790be-a47b-4c2c-970e-dd23ad20513f.lovable.app-1783028671622.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/1f23fe04-a42f-46e4-bd2d-fdf732e611bb/id-preview-6890e19a--308790be-a47b-4c2c-970e-dd23ad20513f.lovable.app-1783028671622.png" },
+      { name: "twitter:title", content: "Immersive — el domo de YAWA, Cali" },
+      {
+        name: "twitter:description",
+        content:
+          "Música, arte & tecnología en un mismo pulso: experiencias inmersivas en 360° en YAWA, Cali.",
+      },
+      { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
       {
@@ -115,7 +132,7 @@ const META_PIXEL = `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: CLARITY }} />
