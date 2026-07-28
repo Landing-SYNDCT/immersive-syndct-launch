@@ -1,6 +1,7 @@
 import textureImage from "@/assets/immersive-texture.jpg";
 import { SiteFooter, SiteHeader } from "@/components/chrome";
 import { HeroDome } from "@/components/hero-dome";
+import { ImmersiveField } from "@/components/immersive-field";
 import { SITE_URL } from "@/lib/seo";
 import { UNDERPASS_ACCOUNT_ID, listPublicEvents } from "@/lib/underpass";
 import { useQuery } from "@tanstack/react-query";
@@ -218,6 +219,8 @@ function Landing() {
         className="glow-orb top-[70%] left-[10%] h-[500px] w-[500px]"
         style={{ background: "var(--prism-violet)", opacity: 0.35 }}
       />
+
+      <ImmersiveField />
 
       <SiteHeader />
 

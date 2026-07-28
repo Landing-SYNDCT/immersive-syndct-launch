@@ -1,4 +1,5 @@
 import imagotipo from "@/assets/immersive-imagotipo.png";
+import { ImmersiveField } from "@/components/immersive-field";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Instagram, Youtube } from "lucide-react";
 import type { ReactNode } from "react";
@@ -123,6 +124,8 @@ export function PageShell({ children }: { children: ReactNode }) {
         className="glow-orb top-[30%] right-[-15%] h-[600px] w-[600px]"
         style={{ background: "var(--prism-blue)", opacity: 0.35 }}
       />
+
+      <ImmersiveField />
 
       <SiteHeader />
 
