@@ -1,6 +1,6 @@
 import imagotipo from "@/assets/immersive-imagotipo.png";
 import { Link } from "@tanstack/react-router";
-import { Instagram, Youtube } from "lucide-react";
+import { ArrowUpRight, Instagram, Youtube } from "lucide-react";
 import type { ReactNode } from "react";
 
 export const SOCIALS = {
@@ -52,6 +52,62 @@ export function Socials({ className = "" }: { className?: string }) {
   );
 }
 
+/** Global site header — identical on the landing and every interior page. */
+export function SiteHeader() {
+  return (
+    <header className="relative z-20">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-6">
+        <Link to="/" className="transition-opacity hover:opacity-80">
+          <img
+            src={imagotipo}
+            alt="Immersive by SYNDCT & TechnoSur"
+            className="h-28 w-auto md:h-56"
+          />
+        </Link>
+        <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
+          <Link to="/" hash="experiencia" className="transition-colors hover:text-foreground">
+            Experiencia
+          </Link>
+          <Link to="/" hash="formatos" className="transition-colors hover:text-foreground">
+            Formatos
+          </Link>
+          <Link to="/" hash="comunidad" className="transition-colors hover:text-foreground">
+            Comunidad
+          </Link>
+        </nav>
+        <Link
+          to="/sessions"
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-foreground backdrop-blur transition-colors hover:bg-white/10"
+        >
+          Ver sesiones <ArrowUpRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+/** Global site footer — identical on the landing and every interior page. */
+export function SiteFooter({ className = "" }: { className?: string }) {
+  return (
+    <footer className={`relative z-10 border-t border-white/5 py-10 ${className}`}>
+      <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 md:flex-row">
+        <Link to="/" className="transition-opacity hover:opacity-80">
+          <img
+            src={imagotipo}
+            alt="Immersive by SYNDCT & TechnoSur"
+            className="h-28 w-auto opacity-90 md:h-56"
+          />
+        </Link>
+        <Socials />
+        <div className="text-center text-xs text-muted-foreground md:text-right">
+          <p>Centro Cultural y Tecnológico YAWA — Cali, Colombia</p>
+          <p className="mt-1">© {new Date().getFullYear()} SYNDCT & TechnoSur</p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
 /**
  * Shared page shell for the interior (non-landing) pages — sessions, checkout,
  * order status. Same dark prism canvas as the landing, minus the marketing hero.
@@ -68,39 +124,11 @@ export function PageShell({ children }: { children: ReactNode }) {
         style={{ background: "var(--prism-blue)", opacity: 0.35 }}
       />
 
-      <header className="relative z-20">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-          <Link to="/" className="transition-opacity hover:opacity-80">
-            <img
-              src={imagotipo}
-              alt="Immersive by SYNDCT & TechnoSur"
-              className="h-56 w-auto md:h-72"
-            />
-          </Link>
-          <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link to="/sessions" className="transition-colors hover:text-foreground">
-              Sesiones
-            </Link>
-            <Link to="/" hash="cta" className="transition-colors hover:text-foreground">
-              Comunidad
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="relative z-10">{children}</main>
 
-      <footer className="relative z-10 mt-20 border-t border-white/5 py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 md:flex-row">
-          <img
-            src={imagotipo}
-            alt="Immersive by SYNDCT"
-            className="h-40 w-auto opacity-90 md:h-56"
-          />
-          <Socials />
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} SYNDCT</p>
-        </div>
-      </footer>
+      <SiteFooter className="mt-20" />
     </div>
   );
 }

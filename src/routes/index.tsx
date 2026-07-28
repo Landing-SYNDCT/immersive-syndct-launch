@@ -1,25 +1,39 @@
-import heroImage from "@/assets/immersive-hero.jpg";
-import imagotipo from "@/assets/immersive-imagotipo.png";
-import isotipo from "@/assets/immersive-isotipo.png";
 import textureImage from "@/assets/immersive-texture.jpg";
-import { Socials } from "@/components/chrome";
+import { SiteFooter, SiteHeader } from "@/components/chrome";
+import { HeroDome } from "@/components/hero-dome";
+import { UNDERPASS_ACCOUNT_ID, listPublicEvents } from "@/lib/underpass";
+import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight, Calendar, Cpu, GraduationCap, Headphones, Mic, Music, Palette, Radio, Sparkles, Users, Video } from "lucide-react";
+import { useState } from "react";
+import {
+  ArrowUpRight,
+  Calendar,
+  Cpu,
+  GraduationCap,
+  Headphones,
+  Mic,
+  Music,
+  Palette,
+  Radio,
+  Sparkles,
+  Users,
+  Video,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Immersive by SYNDCT & TechnoSur — Música, Arte & Tecnología" },
+      { title: "Immersive — Música, arte & tecnología en el domo de YAWA, Cali" },
       {
         name: "description",
         content:
-          "Immersive by SYNDCT & TechnoSur es la plataforma de contenidos, paneles, streamings, sesiones musicales y experiencias que conecta arte, tecnología y cultura.",
+          "Sesiones inmersivas, paneles y experiencias audiovisuales en 360° bajo el domo del Centro Cultural y Tecnológico YAWA, en Cali. Por SYNDCT & TechnoSur.",
       },
-      { property: "og:title", content: "Immersive by SYNDCT & TechnoSur" },
+      { property: "og:title", content: "Immersive — el domo de YAWA, Cali" },
       {
         property: "og:description",
         content:
-          "Plataforma de experiencias inmersivas: música, arte digital, tecnología y educación en un solo espacio.",
+          "Música, arte & tecnología en un mismo pulso: experiencias inmersivas en 360° en el Centro Cultural y Tecnológico YAWA, Cali.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,24 +46,149 @@ const benefits = [
   {
     icon: GraduationCap,
     title: "Ciencia",
-    desc: "Conversaciones y experiencias que acercan el conocimiento a nuevos públicos mediante formatos inmersivos y participativos.",
+    desc: "Astronomía, inteligencia artificial y tecnología contadas bajo una proyección de cielo completo. El conocimiento se siente distinto cuando te rodea.",
   },
   {
     icon: Mic,
-    title: "Agenda académica",
-    desc: "Paneles con artistas, investigadores y líderes de la industria que analizan el futuro de la música, la tecnología y la cultura.",
+    title: "Paneles & charlas",
+    desc: "Artistas, investigadores y líderes de la industria conversando sobre el futuro de la música y la cultura — en vivo, a metros de ti.",
   },
   {
     icon: Music,
     title: "Live experiences",
-    desc: "Sesiones audiovisuales concebidas específicamente para el domo, donde música, visuales y narrativa evolucionan como una sola experiencia.",
+    desc: "Sesiones audiovisuales creadas para el domo: el sonido te envuelve y los visuales evolucionan con la música, en 360° a tu alrededor.",
   },
   {
     icon: Palette,
     title: "Arte & tecnología",
-    desc: "Proyectos que integran inteligencia artificial, visuales generativos y diseño inmersivo para expandir los límites de la creación contemporánea.",
+    desc: "Visuales generativos e inteligencia artificial expandiendo la creación contemporánea sobre una pantalla que no termina.",
   },
 ];
+
+const WEB3FORMS_ACCESS_KEY = "8fe78b09-9d6d-4da5-a7ed-2e2e3990da2a";
+
+const inputStyles =
+  "w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-sm text-left outline-none placeholder:text-muted-foreground focus:border-white/30";
+
+/**
+ * Contact / join form submitted to Web3Forms via fetch so the visitor gets an
+ * inline confirmation instead of being redirected to web3forms.com. Includes
+ * their `botcheck` honeypot; submissions land in the inbox configured for the
+ * access key.
+ */
+function ContactForm() {
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const data = Object.fromEntries(new FormData(form));
+    if (data.botcheck) return;
+    setStatus("sending");
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({
+          ...data,
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: "Nuevo mensaje desde immersivelive.co",
+          from_name: "Immersive Landing",
+        }),
+      });
+      const json = (await res.json()) as { success?: boolean };
+      if (json.success) {
+        setStatus("sent");
+        form.reset();
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  if (status === "sent") {
+    return (
+      <p className="mx-auto mt-10 max-w-md rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-sm text-foreground">
+        Mensaje recibido. Te escribiremos pronto — bienvenido al espectro.
+      </p>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mx-auto mt-10 flex max-w-md flex-col gap-3">
+      <input type="checkbox" name="botcheck" tabIndex={-1} className="hidden" aria-hidden />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <input type="text" name="name" required placeholder="Tu nombre" className={inputStyles} />
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="tu@correo.com"
+          className={inputStyles}
+        />
+      </div>
+      <textarea
+        name="message"
+        required
+        rows={3}
+        placeholder="Cuéntanos quién eres y qué te interesa del domo"
+        className={`${inputStyles} resize-none`}
+      />
+      <button
+        type="submit"
+        disabled={status === "sending"}
+        className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition-transform hover:scale-[1.02] disabled:opacity-60"
+      >
+        {status === "sending" ? "Enviando…" : "Unirme"} <ArrowUpRight className="h-4 w-4" />
+      </button>
+      {status === "error" ? (
+        <p className="text-sm text-destructive">
+          No pudimos enviar tu mensaje. Intenta de nuevo en unos minutos.
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+/**
+ * Pulls the next published session from UnderPass and deep-links to it.
+ * The strongest hook the landing has is a real upcoming date — renders
+ * nothing when there is no future event, so it never shows stale promises.
+ */
+function NextSessionPill() {
+  const { data: events } = useQuery({
+    queryKey: ["public-events", UNDERPASS_ACCOUNT_ID],
+    queryFn: () => listPublicEvents(),
+    staleTime: 60_000,
+  });
+  const next = (events ?? [])
+    .filter((e) => new Date(e.start_date).getTime() > Date.now())
+    .sort((a, b) => +new Date(a.start_date) - +new Date(b.start_date))[0];
+  if (!next) return null;
+
+  const date = new Intl.DateTimeFormat("es-CO", {
+    day: "numeric",
+    month: "long",
+    timeZone: "America/Bogota",
+  }).format(new Date(next.start_date));
+
+  return (
+    <Link
+      to="/sessions/$slug"
+      params={{ slug: next.slug }}
+      className="group mt-8 inline-flex flex-wrap items-center gap-x-3 gap-y-1 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2.5 text-sm text-foreground backdrop-blur transition-colors hover:bg-white/10"
+    >
+      <span className="text-xs uppercase tracking-[0.2em] text-prism animate-shimmer">
+        Próxima sesión
+      </span>
+      <span className="font-medium">{next.name}</span>
+      <span className="text-muted-foreground">· {date}</span>
+      <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+    </Link>
+  );
+}
 
 const formats = [
   { icon: Users, label: "Paneles" },
@@ -64,27 +203,20 @@ function Landing() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
       {/* Ambient glow orbs */}
-      <div className="glow-orb top-[-10%] left-[-10%] h-[500px] w-[500px]" style={{ background: "var(--prism-indigo)" }} />
-      <div className="glow-orb top-[20%] right-[-15%] h-[600px] w-[600px]" style={{ background: "var(--prism-blue)" }} />
-      <div className="glow-orb top-[70%] left-[10%] h-[500px] w-[500px]" style={{ background: "var(--prism-violet)", opacity: 0.35 }} />
+      <div
+        className="glow-orb top-[-10%] left-[-10%] h-[500px] w-[500px]"
+        style={{ background: "var(--prism-indigo)" }}
+      />
+      <div
+        className="glow-orb top-[20%] right-[-15%] h-[600px] w-[600px]"
+        style={{ background: "var(--prism-blue)" }}
+      />
+      <div
+        className="glow-orb top-[70%] left-[10%] h-[500px] w-[500px]"
+        style={{ background: "var(--prism-violet)", opacity: 0.35 }}
+      />
 
-      {/* Nav */}
-      <header className="relative z-20">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-          <img src={imagotipo} alt="Immersive by SYNDCT & TechnoSur" className="h-40 w-auto md:h-56" />
-          <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-            <a href="#experiencia" className="transition-colors hover:text-foreground">Experiencia</a>
-            <a href="#formatos" className="transition-colors hover:text-foreground">Formatos</a>
-            <a href="#comunidad" className="transition-colors hover:text-foreground">Comunidad</a>
-          </nav>
-          <Link
-            to="/sessions"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-foreground backdrop-blur transition-colors hover:bg-white/10"
-          >
-            Ver sesiones <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Hero */}
       <section className="relative z-10">
@@ -92,39 +224,40 @@ function Landing() {
           <div className="md:col-span-7">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs uppercase tracking-[0.2em] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-prism animate-shimmer" />
-              PLATAFORMA CULTURAL · EXPERIENCIAS INMERSIVAS
+              Domo YAWA · Cali, Colombia
             </div>
 
             <h1 className="font-display text-5xl leading-[0.95] tracking-tight md:text-7xl lg:text-8xl">
-              Immersive by
+              Música, arte & tecnología
               <br />
-              <span className="text-prism animate-shimmer">SYNDCT & TechnoSur</span>
+              <span className="text-prism animate-shimmer">en un mismo pulso</span>.
             </h1>
 
             <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Una plataforma cultural que explora la convergencia entre ciencia, música y tecnología a 
-              través de experiencias inmersivas. Diseñamos encuentros donde el conocimiento, 
-              la creación audiovisual y la innovación dialogan para transformar la manera en 
-              que habitamos los espacios culturales.
+              Immersive es la serie de experiencias del domo del Centro Cultural y Tecnológico YAWA:
+              sesiones audiovisuales, paneles y laboratorios donde el sonido te envuelve, los
+              visuales giran a tu alrededor y la ciencia se vive en primera persona.
             </p>
+
+            <NextSessionPill />
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link
                 to="/sessions"
                 className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition-transform hover:scale-[1.02]"
               >
-                Comprar entradas
+                Ver próximas sesiones
                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
-              <Link
-                to="/sessions"
+              <a
+                href="#experiencia"
                 className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3.5 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
               >
-                Conocer la agenda
-              </Link>
+                Qué se vive en el domo
+              </a>
             </div>
 
-            <div className="mt-14 flex items-center gap-6 text-xs uppercase tracking-[0.25em] text-muted-foreground">
+            <div className="mt-14 flex flex-wrap items-center gap-x-4 gap-y-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground md:gap-x-6 md:text-xs md:tracking-[0.25em]">
               <span>Ciencia</span>
               <span className="h-px w-6 bg-white/20" />
               <span>Música</span>
@@ -133,27 +266,19 @@ function Landing() {
             </div>
           </div>
 
-          {/* Hero visual */}
+          {/* Hero visual — isometric iridescent dome (three.js) */}
           <div className="relative md:col-span-5">
-            <div className="relative aspect-square w-full">
-              {/* Domo backdrop */}
-              <div className="absolute inset-0 rounded-full ring-prism overflow-hidden shadow-[0_40px_120px_-20px_rgba(83,61,186,0.6)]">
-                <img
-                  src={heroImage}
-                  alt="Domo inmersivo con refracción de luz prisma"
-                  className="h-full w-full object-cover opacity-70"
-                  width={1536}
-                  height={1536}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-background/10 to-background/40" />
-              </div>
-
-              {/* Isotipo protagonista */}
-              <img
-                src={isotipo}
-                alt="Isotipo Immersive"
-                className="absolute inset-0 m-auto h-[78%] w-[78%] object-contain drop-shadow-[0_0_60px_rgba(255,255,255,0.35)] animate-float"
+            <div className="relative mx-auto aspect-square w-full max-w-[420px] md:max-w-none">
+              {/* Soft glow the dome floats on (also the no-WebGL fallback) */}
+              <div
+                className="pointer-events-none absolute inset-[8%] rounded-full opacity-70 blur-3xl"
+                style={{
+                  background:
+                    "radial-gradient(circle at 50% 45%, color-mix(in oklab, var(--prism-indigo) 55%, transparent) 0%, transparent 70%)",
+                }}
               />
+
+              <HeroDome className="absolute inset-0" />
 
               {/* Slow-rotating outer ring accent */}
               <div className="pointer-events-none absolute inset-[-4%] rounded-full border border-white/10 animate-spin-slow" />
@@ -175,9 +300,11 @@ function Landing() {
       <section id="experiencia" className="relative z-10 py-24 md:py-32">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-14 max-w-2xl">
-            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-muted-foreground">Qué vas a vivir</p>
+            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-muted-foreground">
+              Qué vas a vivir
+            </p>
             <h2 className="font-display text-4xl leading-tight md:text-6xl">
-              Una plataforma que <span className="text-prism">refracta</span> cultura.
+              Qué se vive <span className="text-prism">bajo el domo</span>.
             </h2>
           </div>
 
@@ -190,7 +317,7 @@ function Landing() {
                 <div
                   className="mb-10 inline-flex h-11 w-11 items-center justify-center rounded-2xl"
                   style={{
-                    background: `linear-gradient(135deg, var(--prism-${["indigo","blue","violet","red"][i]}) 0%, transparent 130%)`,
+                    background: `linear-gradient(135deg, var(--prism-${["indigo", "blue", "violet", "red"][i]}) 0%, transparent 130%)`,
                   }}
                 >
                   <Icon className="h-5 w-5 text-white" strokeWidth={1.5} />
@@ -210,15 +337,17 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid gap-12 md:grid-cols-12 md:items-end">
             <div className="md:col-span-5">
-              <p className="mb-4 text-xs uppercase tracking-[0.3em] text-muted-foreground">Formatos</p>
+              <p className="mb-4 text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                Formatos
+              </p>
               <h2 className="font-display text-4xl leading-tight md:text-6xl">
                 Contenido diseñado
                 <br />
                 para el <span className="text-prism">domo</span>.
               </h2>
               <p className="mt-6 max-w-md text-muted-foreground">
-                Cada formato es una superficie perceptiva: luz, sonido y datos convergen
-                en experiencias que se sienten espaciales.
+                Cada formato es una superficie perceptiva: luz, sonido y datos convergen en
+                experiencias que se sienten espaciales.
               </p>
             </div>
 
@@ -247,17 +376,59 @@ function Landing() {
               src={textureImage}
               alt=""
               aria-hidden
-              className="h-56 w-full object-cover md:h-72"
+              className="h-64 w-full object-cover md:h-72"
               loading="lazy"
               width={1920}
               height={800}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/25 to-transparent md:bg-gradient-to-r md:from-background md:via-background/30 md:to-transparent" />
             <div className="absolute inset-0 flex items-center px-8 md:px-14">
               <div className="max-w-xl">
-                <p className="mb-2 text-xs uppercase tracking-[0.3em] text-muted-foreground">Immersive · Live</p>
-                <h3 className="font-display text-3xl md:text-5xl">Música, arte & tecnología en un mismo pulso.</h3>
+                <p className="mb-2 text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  Immersive · Live
+                </p>
+                <h3 className="font-display text-3xl md:text-5xl">
+                  Una plataforma que <span className="text-prism">refracta</span> cultura.
+                </h3>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Behind the experience */}
+      <section id="equipo" className="relative z-10 py-24 md:py-32">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-14 max-w-2xl">
+            <p className="mb-4 text-xs uppercase tracking-[0.3em] text-muted-foreground">
+              Quiénes lo hacen posible
+            </p>
+            <h2 className="font-display text-4xl leading-tight md:text-6xl">
+              Un equipo detrás de <span className="text-prism">cada detalle</span>.
+            </h2>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            <div className="surface-card rounded-3xl p-6">
+              <h3 className="mb-2 font-display text-xl">SYNDCT</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Consultoría y operación de eventos. Su equipo en sitio opera barra, taquilla y
+                accesos para que cada experiencia fluya sin fricción — tú solo llegas a vivirla.
+              </p>
+            </div>
+            <div className="surface-card rounded-3xl p-6">
+              <h3 className="mb-2 font-display text-xl">TechnoSur</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                La marca de música electrónica del sur: curaduría de line-ups y sesiones que
+                conectan la escena local con el sonido global.
+              </p>
+            </div>
+            <div className="surface-card rounded-3xl p-6">
+              <h3 className="mb-2 font-display text-xl">Entradas seguras</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Ticketing por UnderPass: compra en línea en minutos, tu entrada llega al correo y
+                entras con QR el día de la sesión.
+              </p>
             </div>
           </div>
         </div>
@@ -268,7 +439,9 @@ function Landing() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-14 flex flex-wrap items-end justify-between gap-6">
             <div className="max-w-2xl">
-              <p className="mb-4 text-xs uppercase tracking-[0.3em] text-muted-foreground">Comunidad</p>
+              <p className="mb-4 text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                Comunidad
+              </p>
               <h2 className="font-display text-4xl leading-tight md:text-6xl">
                 Un mismo proyecto,
                 <br />
@@ -276,9 +449,9 @@ function Landing() {
               </h2>
             </div>
             <p className="max-w-sm text-muted-foreground">
-              Immersive conecta creadores, artistas, tecnólogos, marcas y audiencias
-              alrededor de una misma convicción: las mejores experiencias nacen
-              cuando distintas disciplinas deciden crear juntas.
+              Immersive conecta creadores, artistas, tecnólogos, marcas y audiencias alrededor de
+              una misma convicción: las mejores experiencias nacen cuando distintas disciplinas
+              deciden crear juntas.
             </p>
           </div>
 
@@ -297,7 +470,7 @@ function Landing() {
                 <span
                   className="flex h-10 w-10 items-center justify-center rounded-full"
                   style={{
-                    background: `color-mix(in oklab, var(--prism-${["red","yellow","green","blue","violet"][i]}) 30%, transparent)`,
+                    background: `color-mix(in oklab, var(--prism-${["red", "yellow", "green", "blue", "violet"][i]}) 30%, transparent)`,
                   }}
                 >
                   <Icon className="h-4 w-4" strokeWidth={1.5} />
@@ -324,40 +497,16 @@ function Landing() {
               Entra al <span className="text-prism">espectro</span>. Sé parte del próximo capítulo.
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-muted-foreground">
-              Recibe estrenos, sesiones y accesos anticipados a experiencias del domo.
+              ¿Público, artista, marca u organizador? Escríbenos y entérate primero de estrenos,
+              sesiones y accesos anticipados a experiencias del domo.
             </p>
 
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="mx-auto mt-10 flex max-w-md flex-col gap-3 sm:flex-row"
-            >
-              <input
-                type="email"
-                required
-                placeholder="tu@correo.com"
-                className="w-full rounded-full border border-white/10 bg-white/5 px-5 py-3.5 text-sm outline-none placeholder:text-muted-foreground focus:border-white/30"
-              />
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-medium text-black transition-transform hover:scale-[1.02]"
-              >
-                Unirme <ArrowUpRight className="h-4 w-4" />
-              </button>
-            </form>
+            <ContactForm />
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/5 py-10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 md:flex-row">
-          <div className="flex items-center gap-3">
-            <img src={imagotipo} alt="Immersive by SYNDCT" className="h-40 w-auto opacity-90 md:h-56" />
-          </div>
-          <Socials />
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} SYNDCT</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
