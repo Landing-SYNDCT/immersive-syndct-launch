@@ -38,7 +38,10 @@ export function HeroDome({ className }: { className?: string }) {
       } catch {
         return; // no WebGL — keep the CSS glow fallback
       }
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      // Lower DPR cap on touch devices — retina ×2 on a large hero canvas is
+      // the main mobile GPU cost.
+      const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, coarsePointer ? 1.5 : 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.1;
       renderer.domElement.style.width = "100%";
@@ -371,6 +374,8 @@ export function HeroDome({ className }: { className?: string }) {
         anchored = true;
       };
       let raf = 0;
+      let domeVisible = true;
+      let visibility: IntersectionObserver | undefined;
       if (!reducedMotion) {
         window.addEventListener("pointermove", onPointerMove, { passive: true });
         onTap = () => {
@@ -392,7 +397,14 @@ export function HeroDome({ className }: { className?: string }) {
         window.addEventListener("keydown", anchor, { once: true });
         let lean = 0;
         let roll = 0;
+        let running = false;
         const tick = () => {
+          // Stop the loop entirely while the dome is scrolled out of view —
+          // rendering an invisible canvas is what made mobile scrolling lag.
+          if (!domeVisible) {
+            running = false;
+            return;
+          }
           if (!anchored) scrollOrigin = window.scrollY;
           const scrolled = Math.max(0, window.scrollY - scrollOrigin);
           const targetRoll = rollAt(Math.min(scrolled / PX_PER_NOTCH, N - 1) + tapNotches);
@@ -406,7 +418,18 @@ export function HeroDome({ className }: { className?: string }) {
           renderer.render(scene, camera);
           raf = requestAnimationFrame(tick);
         };
-        raf = requestAnimationFrame(tick);
+        const start = () => {
+          if (!running) {
+            running = true;
+            raf = requestAnimationFrame(tick);
+          }
+        };
+        visibility = new IntersectionObserver(([entry]) => {
+          domeVisible = entry.isIntersecting;
+          if (domeVisible) start();
+        });
+        visibility.observe(container);
+        start();
       } else {
         onTap = () => {
           tapNotches += 1;
@@ -430,6 +453,7 @@ export function HeroDome({ className }: { className?: string }) {
         window.removeEventListener("wheel", anchor);
         window.removeEventListener("touchstart", anchor);
         window.removeEventListener("keydown", anchor);
+        visibility?.disconnect();
         observer.disconnect();
         for (const geo of [domeGeo, strutGeo, baseGeo, ringGeo, ico]) geo.dispose();
         for (const mat of [domeMat, strutMat, baseMat, ringMat]) mat.dispose();

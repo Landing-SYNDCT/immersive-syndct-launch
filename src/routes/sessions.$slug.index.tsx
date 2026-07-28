@@ -4,6 +4,7 @@ import { initOrganizerPixels } from "@/lib/pixels";
 import { SITE_URL } from "@/lib/seo";
 import {
   eventCoverUrl,
+  eventFlyerUrl,
   formatCOP,
   formatEventDate,
   getEventWithDetails,
@@ -147,7 +148,11 @@ function TicketSelection({
   onUnlock: (stages: string[]) => void;
 }) {
   const navigate = useNavigate();
-  const cover = eventCoverUrl(event);
+  // Both artworks, like the UnderPass landing: banner (is_primary) as the wide
+  // hero strip, flyer (is_secondary) as the portrait piece beside the info.
+  const banner = eventCoverUrl(event);
+  const flyer = eventFlyerUrl(event);
+  const showBanner = Boolean(banner && banner !== flyer);
   const [qty, setQty] = useState<Record<string, number>>({});
   const [navigating, setNavigating] = useState(false);
 
@@ -364,10 +369,18 @@ function TicketSelection({
           <ArrowLeft className="h-4 w-4" /> Todas las sesiones
         </Link>
       </div>
+      {showBanner ? (
+        <div className="mx-auto mt-4 max-w-6xl px-6">
+          <div className="relative h-52 overflow-hidden rounded-3xl md:h-72">
+            <img src={banner!} alt={event.name} className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+          </div>
+        </div>
+      ) : null}
       <div className="mx-auto mt-4 grid max-w-6xl gap-8 px-6 md:grid-cols-2 md:items-center">
-        <div className="relative aspect-[4/3] overflow-hidden rounded-3xl ring-prism">
-          {cover ? (
-            <img src={cover} alt={event.name} className="h-full w-full object-cover" />
+        <div className="relative aspect-[4/5] overflow-hidden rounded-3xl ring-prism md:max-w-md">
+          {flyer ? (
+            <img src={flyer} alt={`Flyer — ${event.name}`} className="h-full w-full object-cover" />
           ) : (
             <div className="h-full w-full bg-prism opacity-30" />
           )}

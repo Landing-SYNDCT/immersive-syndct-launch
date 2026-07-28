@@ -338,6 +338,7 @@ export function formatCOP(value: string | number): string {
   return Number.isFinite(n) ? COP.format(n) : "—";
 }
 
+/** Banner (is_primary) — wide art, used for OG/social previews. */
 export function eventCoverUrl(e: EventSummary | EventDetail): string | null {
   const media = e.media ?? [];
   const primary = media.find((m) => m.is_primary && m.type === "IMAGE");
@@ -345,13 +346,26 @@ export function eventCoverUrl(e: EventSummary | EventDetail): string | null {
   return (primary ?? anyImage)?.url ?? null;
 }
 
+/** Flyer (is_secondary) — portrait art, used for on-page event visuals. */
+export function eventFlyerUrl(e: EventSummary | EventDetail): string | null {
+  const media = e.media ?? [];
+  const secondary = media.find((m) => m.is_secondary && m.type === "IMAGE");
+  return secondary?.url ?? eventCoverUrl(e);
+}
+
 export function formatEventDate(iso: string): string {
   try {
-    return new Intl.DateTimeFormat("es-CO", {
-      dateStyle: "full",
-      timeStyle: "short",
-      timeZone: "America/Bogota",
-    }).format(new Date(iso));
+    return (
+      new Intl.DateTimeFormat("es-CO", {
+        dateStyle: "full",
+        timeStyle: "short",
+        timeZone: "America/Bogota",
+      })
+        .format(new Date(iso))
+        // Node and browsers disagree on narrow/no-break spaces around "p. m."
+        // — normalize so SSR and client render byte-identical text.
+        .replace(/[  ]/g, " ")
+    );
   } catch {
     return iso;
   }
