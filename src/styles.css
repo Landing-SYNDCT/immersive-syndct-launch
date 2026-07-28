@@ -209,3 +209,15 @@
   background-size: 200% 200%;
   animation: shimmer 6s linear infinite;
 }
+
+/* Touch devices: backdrop blurs and large animated gradients are the main
+   scroll-jank sources on mobile Safari — trade them for static equivalents. */
+@media (pointer: coarse) {
+  [class*="backdrop-blur"] {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .animate-shimmer {
+    animation: none;
+  }
+}

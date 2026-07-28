@@ -41,7 +41,7 @@ export function HeroDome({ className }: { className?: string }) {
       // Lower DPR cap on touch devices — retina ×2 on a large hero canvas is
       // the main mobile GPU cost.
       const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, coarsePointer ? 1.5 : 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, coarsePointer ? 1.25 : 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.1;
       renderer.domElement.style.width = "100%";
@@ -398,11 +398,18 @@ export function HeroDome({ className }: { className?: string }) {
         let lean = 0;
         let roll = 0;
         let running = false;
+        let frame = 0;
         const tick = () => {
           // Stop the loop entirely while the dome is scrolled out of view —
           // rendering an invisible canvas is what made mobile scrolling lag.
           if (!domeVisible) {
             running = false;
+            return;
+          }
+          // Touch devices render at 30fps — halves GPU work, eased motion
+          // stays visually smooth.
+          if (coarsePointer && ++frame % 2) {
+            raf = requestAnimationFrame(tick);
             return;
           }
           if (!anchored) scrollOrigin = window.scrollY;

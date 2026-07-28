@@ -90,7 +90,8 @@ export function ImmersiveField() {
       } catch {
         return;
       }
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+      const coarse = window.matchMedia("(pointer: coarse)").matches;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, coarse ? 1.25 : 1.75));
       renderer.domElement.style.width = "100%";
       renderer.domElement.style.height = "100%";
       container.appendChild(renderer.domElement);
@@ -103,8 +104,7 @@ export function ImmersiveField() {
       scene.add(rig);
 
       // --- Dot field ------------------------------------------------------
-      const coarse = window.matchMedia("(pointer: coarse)").matches;
-      const COUNT = coarse ? 550 : 1400;
+      const COUNT = coarse ? 320 : 1400;
       const positions = new Float32Array(COUNT * 3);
       const sizes = new Float32Array(COUNT);
       const colors = new Float32Array(COUNT * 3);
@@ -173,14 +173,18 @@ export function ImmersiveField() {
         renderer.render(scene, camera);
       } else {
         const clock = new THREE.Clock();
+        let frame = 0;
         const tick = () => {
+          raf = requestAnimationFrame(tick);
+          // Touch devices render at 30fps — the drift is slow enough that
+          // halving the GPU work is imperceptible, but scrolling stays smooth.
+          if (coarse && ++frame % 2) return;
           mat.uniforms.uTime.value = clock.getElapsedTime();
           mat.uniforms.uScroll.value = window.scrollY * 0.004;
           // Ease toward the pointer — turning your head under the dome.
           rig.rotation.y += (pointer.x * -0.06 - rig.rotation.y) * 0.03;
           rig.rotation.x += (pointer.y * -0.04 - rig.rotation.x) * 0.03;
           renderer.render(scene, camera);
-          raf = requestAnimationFrame(tick);
         };
         raf = requestAnimationFrame(tick);
       }
