@@ -378,22 +378,26 @@ export function HeroDome({ className }: { className?: string }) {
       let visibility: IntersectionObserver | undefined;
       if (!reducedMotion) {
         window.addEventListener("pointermove", onPointerMove, { passive: true });
+        const clock = new THREE.Clock();
+        // Desktop: scroll rolls the dome one notch per ~175px, stopping on the
+        // last logo. Touch: Safari suspends rAF during scroll gestures, so a
+        // scroll-chained roll freezes mid-gesture — instead the dome runs as a
+        // timed carousel, one notch every AUTO_S seconds while visible.
+        const PX_PER_NOTCH = 175;
+        const AUTO_S = 4;
+        let autoNotches = 0;
+        let lastAuto = 0;
         onTap = () => {
           tapNotches += 1;
+          lastAuto = clock.getElapsedTime(); // a tap resets the auto timer
         };
         container.addEventListener("click", onTap);
-        const clock = new THREE.Clock();
-        // Scroll rolls the dome one notch per ~175px, stopping on the last
-        // logo; taps add notches on top and keep cycling. Eased so it feels
-        // like mass, not a scrubbed dial.
-        const PX_PER_NOTCH = 175;
         // The dome always appears with the Immersive logo centered: the roll
         // anchor keeps tracking the scroll position (absorbing the browser's
         // scroll restoration, which can animate in after mount) until the
         // visitor actually interacts — only their own scrolling rolls the dome.
         let scrollOrigin = window.scrollY;
         window.addEventListener("wheel", anchor, { passive: true, once: true });
-        window.addEventListener("touchstart", anchor, { passive: true, once: true });
         window.addEventListener("keydown", anchor, { once: true });
         let lean = 0;
         let roll = 0;
@@ -412,14 +416,25 @@ export function HeroDome({ className }: { className?: string }) {
             raf = requestAnimationFrame(tick);
             return;
           }
-          if (!anchored) scrollOrigin = window.scrollY;
-          const scrolled = Math.max(0, window.scrollY - scrollOrigin);
-          const targetRoll = rollAt(Math.min(scrolled / PX_PER_NOTCH, N - 1) + tapNotches);
-          roll += (targetRoll - roll) * 0.06;
+          const t = clock.getElapsedTime();
+          let targetRoll: number;
+          if (coarsePointer) {
+            if (t - lastAuto > AUTO_S) {
+              autoNotches += 1;
+              lastAuto = t;
+            }
+            targetRoll = rollAt(autoNotches + tapNotches);
+          } else {
+            if (!anchored) scrollOrigin = window.scrollY;
+            const scrolled = Math.max(0, window.scrollY - scrollOrigin);
+            targetRoll = rollAt(Math.min(scrolled / PX_PER_NOTCH, N - 1) + tapNotches);
+          }
+          // Faster ease on touch to compensate for the 30fps step rate.
+          roll += (targetRoll - roll) * (coarsePointer ? 0.12 : 0.06);
           lean += (pointer.x * 0.12 - lean) * 0.04;
           // The idle swing fades out once the roll starts so each logo lands
           // facing front instead of oscillating around it.
-          const swing = Math.sin(clock.getElapsedTime() * 0.3) * 0.18 * Math.max(0, 1 - roll / 0.5);
+          const swing = Math.sin(t * 0.3) * 0.18 * Math.max(0, 1 - roll / 0.5);
           group.rotation.y = swing + lean + roll;
           group.rotation.x += (pointer.y * 0.05 - group.rotation.x) * 0.04;
           renderer.render(scene, camera);
@@ -428,6 +443,8 @@ export function HeroDome({ className }: { className?: string }) {
         const start = () => {
           if (!running) {
             running = true;
+            // Don't advance immediately after re-entering the viewport.
+            lastAuto = clock.getElapsedTime();
             raf = requestAnimationFrame(tick);
           }
         };
