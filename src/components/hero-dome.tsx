@@ -378,7 +378,8 @@ export function HeroDome({ className }: { className?: string }) {
       let visibility: IntersectionObserver | undefined;
       if (!reducedMotion) {
         window.addEventListener("pointermove", onPointerMove, { passive: true });
-        const clock = new THREE.Clock();
+        const t0 = performance.now();
+        const elapsed = () => (performance.now() - t0) / 1000;
         // Desktop: scroll rolls the dome one notch per ~175px, stopping on the
         // last logo. Touch: Safari suspends rAF during scroll gestures, so a
         // scroll-chained roll freezes mid-gesture — instead the dome runs as a
@@ -389,7 +390,7 @@ export function HeroDome({ className }: { className?: string }) {
         let lastAuto = 0;
         onTap = () => {
           tapNotches += 1;
-          lastAuto = clock.getElapsedTime(); // a tap resets the auto timer
+          lastAuto = elapsed(); // a tap resets the auto timer
         };
         container.addEventListener("click", onTap);
         // The dome always appears with the Immersive logo centered: the roll
@@ -416,7 +417,7 @@ export function HeroDome({ className }: { className?: string }) {
             raf = requestAnimationFrame(tick);
             return;
           }
-          const t = clock.getElapsedTime();
+          const t = elapsed();
           let targetRoll: number;
           if (coarsePointer) {
             if (t - lastAuto > AUTO_S) {
@@ -444,7 +445,7 @@ export function HeroDome({ className }: { className?: string }) {
           if (!running) {
             running = true;
             // Don't advance immediately after re-entering the viewport.
-            lastAuto = clock.getElapsedTime();
+            lastAuto = elapsed();
             raf = requestAnimationFrame(tick);
           }
         };

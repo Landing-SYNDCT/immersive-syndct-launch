@@ -221,3 +221,18 @@
     animation: none;
   }
 }
+
+/* Touch devices: rAF is suspended during scroll gestures on iOS (Safari AND
+   Chrome — both WebKit), freezing WebGL animation. A compositor-driven CSS
+   drift keeps the particle field alive through the gesture; the canvas is
+   oversized so the drift never reveals its edges. */
+@keyframes field-drift {
+  from { transform: scale(1.1) translate(-1.5%, -1%); }
+  to { transform: scale(1.1) translate(1.5%, 1%); }
+}
+@media (pointer: coarse) {
+  .immersive-field {
+    animation: field-drift 40s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+}

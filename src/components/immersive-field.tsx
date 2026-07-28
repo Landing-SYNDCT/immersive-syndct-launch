@@ -172,14 +172,14 @@ export function ImmersiveField() {
         mat.uniforms.uTime.value = 7; // a pleasant static arrangement
         renderer.render(scene, camera);
       } else {
-        const clock = new THREE.Clock();
+        const t0 = performance.now();
         let frame = 0;
         const tick = () => {
           raf = requestAnimationFrame(tick);
           // Touch devices render at 30fps — the drift is slow enough that
           // halving the GPU work is imperceptible, but scrolling stays smooth.
           if (coarse && ++frame % 2) return;
-          mat.uniforms.uTime.value = clock.getElapsedTime();
+          mat.uniforms.uTime.value = (performance.now() - t0) / 1000;
           mat.uniforms.uScroll.value = window.scrollY * 0.004;
           // Ease toward the pointer — turning your head under the dome.
           rig.rotation.y += (pointer.x * -0.06 - rig.rotation.y) * 0.03;
@@ -207,5 +207,11 @@ export function ImmersiveField() {
     };
   }, []);
 
-  return <div ref={containerRef} aria-hidden className="pointer-events-none fixed inset-0 z-0" />;
+  return (
+    <div
+      ref={containerRef}
+      aria-hidden
+      className="immersive-field pointer-events-none fixed inset-0 z-0"
+    />
+  );
 }
