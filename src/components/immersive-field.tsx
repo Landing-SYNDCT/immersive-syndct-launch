@@ -174,11 +174,16 @@ export function ImmersiveField() {
       } else {
         const t0 = performance.now();
         let frame = 0;
+        let lastY = window.scrollY;
         const tick = () => {
           raf = requestAnimationFrame(tick);
-          // Touch devices render at 30fps — the drift is slow enough that
-          // halving the GPU work is imperceptible, but scrolling stays smooth.
-          if (coarse && ++frame % 2) return;
+          const y = window.scrollY;
+          const scrolling = Math.abs(y - lastY) > 2;
+          lastY = y;
+          // Touch devices render at 30fps ambient, dropping to 15fps while the
+          // page scrolls — the frame budget goes to the scroll-linked dome and
+          // the CSS compositor drift keeps the field feeling alive.
+          if (coarse && ++frame % (scrolling ? 4 : 2)) return;
           mat.uniforms.uTime.value = (performance.now() - t0) / 1000;
           mat.uniforms.uScroll.value = window.scrollY * 0.004;
           // Ease toward the pointer — turning your head under the dome.

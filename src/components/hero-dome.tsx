@@ -134,9 +134,9 @@ export function HeroDome({ className }: { className?: string }) {
           h: 0.43,
           crop: { x: 0.15, y: 0.36, w: 0.7, h: 0.2 },
         },
-        { url: "/logo-underpass.png", w: 0.8, h: 0.8 },
-        { url: "/logo-yawa.png", w: 1.08, h: 0.54 },
         { url: "/logos-syndct.png", w: 0.84, h: 0.68, cutout: true },
+        { url: "/logo-yawa.png", w: 1.08, h: 0.54 },
+        { url: "/logo-underpass.png", w: 0.8, h: 0.8 },
       ];
       const N = LOGOS.length;
       // Ring elevation: low enough that the latitude circle has room for all
@@ -369,69 +369,43 @@ export function HeroDome({ className }: { className?: string }) {
       container.style.cursor = "pointer";
       let tapNotches = 0;
       let onTap: () => void;
-      let anchored = false;
-      const anchor = () => {
-        anchored = true;
-      };
       let raf = 0;
       let domeVisible = true;
       let visibility: IntersectionObserver | undefined;
+      let onScroll: (() => void) | undefined;
       if (!reducedMotion) {
         window.addEventListener("pointermove", onPointerMove, { passive: true });
         const t0 = performance.now();
         const elapsed = () => (performance.now() - t0) / 1000;
-        // Desktop: scroll rolls the dome one notch per ~175px, stopping on the
-        // last logo. Touch: Safari suspends rAF during scroll gestures, so a
-        // scroll-chained roll freezes mid-gesture — instead the dome runs as a
-        // timed carousel, one notch every AUTO_S seconds while visible.
+        // Scroll rolls the dome one notch per ~175px, stopping on the last
+        // logo; taps add notches on top and keep cycling.
         const PX_PER_NOTCH = 175;
-        const AUTO_S = 4;
-        let autoNotches = 0;
-        let lastAuto = 0;
         onTap = () => {
           tapNotches += 1;
-          lastAuto = elapsed(); // a tap resets the auto timer
         };
         container.addEventListener("click", onTap);
-        // The dome always appears with the Immersive logo centered: the roll
-        // anchor keeps tracking the scroll position (absorbing the browser's
-        // scroll restoration, which can animate in after mount) until the
-        // visitor actually interacts — only their own scrolling rolls the dome.
-        let scrollOrigin = window.scrollY;
-        window.addEventListener("wheel", anchor, { passive: true, once: true });
-        window.addEventListener("keydown", anchor, { once: true });
+        // The roll is a PURE function of where the dome sits in the viewport:
+        // zero (Immersive logo front) while its top is at/below ~45% of the
+        // screen — its resting spot in the desktop hero and below the fold on
+        // mobile — and advancing one notch per PX_PER_NOTCH as it climbs.
+        // Position-deterministic means reloads mid-page land on the right
+        // logo, and scrolling in either direction scrubs the roll.
         let lean = 0;
         let roll = 0;
         let running = false;
-        let frame = 0;
-        const tick = () => {
-          // Stop the loop entirely while the dome is scrolled out of view —
-          // rendering an invisible canvas is what made mobile scrolling lag.
-          if (!domeVisible) {
-            running = false;
-            return;
-          }
-          // Touch devices render at 30fps — halves GPU work, eased motion
-          // stays visually smooth.
-          if (coarsePointer && ++frame % 2) {
-            raf = requestAnimationFrame(tick);
-            return;
-          }
+        let lastStep = 0;
+
+        // One simulation+render step. Driven from BOTH the rAF loop and the
+        // scroll event: on iOS the compositor can starve rAF during scroll
+        // gestures, but scroll events keep firing — piggybacking a render on
+        // them keeps the roll glued to the finger.
+        const step = () => {
+          lastStep = performance.now();
           const t = elapsed();
-          let targetRoll: number;
-          if (coarsePointer) {
-            if (t - lastAuto > AUTO_S) {
-              autoNotches += 1;
-              lastAuto = t;
-            }
-            targetRoll = rollAt(autoNotches + tapNotches);
-          } else {
-            if (!anchored) scrollOrigin = window.scrollY;
-            const scrolled = Math.max(0, window.scrollY - scrollOrigin);
-            targetRoll = rollAt(Math.min(scrolled / PX_PER_NOTCH, N - 1) + tapNotches);
-          }
-          // Faster ease on touch to compensate for the 30fps step rate.
-          roll += (targetRoll - roll) * (coarsePointer ? 0.12 : 0.06);
+          const top = container.getBoundingClientRect().top;
+          const traveled = Math.max(0, window.innerHeight * 0.45 - top);
+          const targetRoll = rollAt(Math.min(traveled / PX_PER_NOTCH, N - 1) + tapNotches);
+          roll += (targetRoll - roll) * 0.08;
           lean += (pointer.x * 0.12 - lean) * 0.04;
           // The idle swing fades out once the roll starts so each logo lands
           // facing front instead of oscillating around it.
@@ -439,16 +413,30 @@ export function HeroDome({ className }: { className?: string }) {
           group.rotation.y = swing + lean + roll;
           group.rotation.x += (pointer.y * 0.05 - group.rotation.x) * 0.04;
           renderer.render(scene, camera);
+        };
+        const tick = () => {
+          // Stop the loop entirely while the dome is scrolled out of view —
+          // rendering an invisible canvas is wasted GPU on mobile.
+          if (!domeVisible) {
+            running = false;
+            return;
+          }
+          step();
           raf = requestAnimationFrame(tick);
         };
         const start = () => {
           if (!running) {
             running = true;
-            // Don't advance immediately after re-entering the viewport.
-            lastAuto = elapsed();
             raf = requestAnimationFrame(tick);
           }
         };
+        onScroll = () => {
+          if (!domeVisible) return;
+          // Render at most once per ~frame; skip if the rAF loop just did.
+          if (performance.now() - lastStep < 16) return;
+          step();
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
         visibility = new IntersectionObserver(([entry]) => {
           domeVisible = entry.isIntersecting;
           if (domeVisible) start();
@@ -475,9 +463,7 @@ export function HeroDome({ className }: { className?: string }) {
         cancelAnimationFrame(raf);
         window.removeEventListener("pointermove", onPointerMove);
         container.removeEventListener("click", onTap);
-        window.removeEventListener("wheel", anchor);
-        window.removeEventListener("touchstart", anchor);
-        window.removeEventListener("keydown", anchor);
+        if (onScroll) window.removeEventListener("scroll", onScroll);
         visibility?.disconnect();
         observer.disconnect();
         for (const geo of [domeGeo, strutGeo, baseGeo, ringGeo, ico]) geo.dispose();
