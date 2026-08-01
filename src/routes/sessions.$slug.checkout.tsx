@@ -1,7 +1,13 @@
 import { PageShell } from "@/components/chrome";
 import { clearAttribution, readAttribution } from "@/lib/attribution";
 import { initOrganizerPixels, trackInitiateCheckout } from "@/lib/pixels";
-import { formatCOP, readCookie, startCheckout, type DocumentType } from "@/lib/underpass";
+import {
+  UnderpassError,
+  formatCOP,
+  readCookie,
+  startCheckout,
+  type DocumentType,
+} from "@/lib/underpass";
 import { useMutation } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
@@ -47,6 +53,23 @@ const DOC_TYPES: { value: DocumentType; label: string }[] = [
 ];
 
 const LAST_ORDER_KEY = "up:lastOrder";
+
+// Server-enforced purchase limits come back as machine codes; translate them
+// instead of surfacing the API's English message.
+function checkoutErrorMessage(error: unknown): string {
+  if (error instanceof UnderpassError) {
+    switch (error.code) {
+      case "MAX_TICKETS_PER_ORDER_EXCEEDED":
+        return "Superaste el máximo de entradas permitidas por orden para este evento.";
+      case "MAX_TICKETS_PER_EMAIL_EXCEEDED":
+        return "Este correo ya alcanzó el límite de entradas para este evento.";
+      case "INSUFFICIENT_TICKETS":
+        return "No hay suficientes entradas disponibles. Ajusta la cantidad e intenta de nuevo.";
+    }
+    if (error.message) return error.message;
+  }
+  return (error as Error)?.message ?? "No pudimos iniciar el pago. Intenta de nuevo.";
+}
 
 function CheckoutPage() {
   const { slug } = Route.useParams();
@@ -324,8 +347,7 @@ function CheckoutForm({ data, slug }: { data: CheckoutData; slug: string }) {
             {formError ? <p className="mt-3 text-sm text-destructive">{formError}</p> : null}
             {checkout.isError ? (
               <p className="mt-3 text-sm text-destructive">
-                {(checkout.error as Error)?.message ??
-                  "No pudimos iniciar el pago. Intenta de nuevo."}
+                {checkoutErrorMessage(checkout.error)}
               </p>
             ) : null}
 

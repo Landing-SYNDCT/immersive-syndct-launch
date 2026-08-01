@@ -214,7 +214,23 @@ function TicketSelection({
   const setQuantity = (t: Ticket, change: number) =>
     setQty((prev) => {
       const cur = prev[t.availabilityId] ?? 0;
-      const next = Math.max(0, Math.min(maxQuantity(t), cur + change));
+      let next = Math.max(0, Math.min(maxQuantity(t), cur + change));
+      // Event-level cap: total tickets (qty × group size) across ALL selected
+      // types can't exceed maxTicketsPerOrder. Server enforces this too
+      // (MAX_TICKETS_PER_ORDER_EXCEEDED) — this just keeps the UI honest.
+      if (event.maxTicketsPerOrder != null && next > cur) {
+        const others = event.tickets.reduce(
+          (sum, other) =>
+            other.availabilityId === t.availabilityId
+              ? sum
+              : sum + (prev[other.availabilityId] ?? 0) * other.groupSize,
+          0,
+        );
+        const room = Math.floor(
+          Math.max(0, event.maxTicketsPerOrder - others) / t.groupSize,
+        );
+        next = Math.min(next, Math.max(cur, room));
+      }
       return { ...prev, [t.availabilityId]: next };
     });
 

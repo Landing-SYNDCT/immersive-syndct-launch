@@ -90,6 +90,7 @@ type RawEventDetail = EventSummary & {
   min_initial_payment_pct?: number;
   max_payment_count?: number;
   require_individual_data?: boolean;
+  max_tickets_per_order?: number | null;
   ticket_commission_rate?: number | string | null;
   organizer?: { collective: string };
   ticketAvailability?: RawAvailability[];
@@ -133,6 +134,8 @@ export type EventDetail = {
   allowsSplitPayment: boolean;
   minInitialPaymentPct: number;
   maxPaymentCount: number;
+  /** Event-level cap on total tickets (qty × group size) per order; null = unlimited. */
+  maxTicketsPerOrder: number | null;
   ticketCommissionRate: number;
   pixelIntegration?: PixelIntegration | null;
   tickets: Ticket[];
@@ -222,6 +225,7 @@ export class UnderpassError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly code?: string,
   ) {
     super(message);
     this.name = "UnderpassError";
@@ -236,7 +240,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const body = await res.json().catch(() => null);
   if (!res.ok) {
     const message = (body && (body.message || body.error)) || `Request failed (${res.status})`;
-    throw new UnderpassError(Array.isArray(message) ? message.join(", ") : message, res.status);
+    // API errors carry a stable machine code ({ code, message, detail }).
+    const code = body?.code ?? body?.data?.code;
+    throw new UnderpassError(
+      Array.isArray(message) ? message.join(", ") : message,
+      res.status,
+      code,
+    );
   }
   return (body?.data ?? body) as T;
 }
@@ -298,6 +308,7 @@ export async function getEventWithDetails(
     allowsSplitPayment: Boolean(raw.allows_split_payment),
     minInitialPaymentPct: raw.min_initial_payment_pct ?? 0,
     maxPaymentCount: raw.max_payment_count ?? 1,
+    maxTicketsPerOrder: raw.max_tickets_per_order ?? null,
     ticketCommissionRate: Number(raw.ticket_commission_rate ?? 0),
     pixelIntegration: raw.pixelIntegration,
     tickets,
