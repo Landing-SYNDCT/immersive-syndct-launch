@@ -1,11 +1,11 @@
 import { CenterState, PageShell } from "@/components/chrome";
 import { SITE_URL } from "@/lib/seo";
 import {
-    eventCoverUrl,
-    eventFlyerUrl,
-    formatEventDate,
-    listPublicEvents,
-    type EventSummary,
+  eventCoverUrl,
+  eventFlyerUrl,
+  formatEventDate,
+  listPublicEvents,
+  type EventSummary,
 } from "@/lib/underpass";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, CalendarDays, MapPin } from "lucide-react";
@@ -72,23 +72,11 @@ function SpecialSessionCard() {
       rel="noopener noreferrer"
       className="surface-card group flex flex-col overflow-hidden rounded-3xl transition-transform duration-500 hover:-translate-y-1"
     >
-      <div className="relative">
-        <div className="relative aspect-[16/9] w-full overflow-hidden bg-white/[0.03]">
-          <img
-            src="/Inmersive_live-1080x1080.jpg"
-            alt="INNEXEN LIVE AND TOPIC VJ"
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-        </div>
-        <img
-          src="/Inmersive_live-1080x1080.jpg"
-          alt="Flyer — INNEXEN LIVE AND TOPIC VJ"
-          className="absolute -bottom-10 left-5 aspect-[3/4] w-24 rounded-xl border border-white/15 object-cover shadow-[0_12px_32px_-8px_rgba(0,0,0,0.7)]"
-          loading="lazy"
-        />
-      </div>
+      <SessionCardTop
+        title="INNEXEN LIVE AND TOPIC VJ"
+        banner="/Inmersive_live-1080x1080.jpg"
+        flyer="/Inmersive_live-1080x1080.jpg"
+      />
       <div className="flex flex-1 flex-col p-6 pt-14">
         <h3 className="font-display text-xl leading-tight">INNEXEN LIVE AND TOPIC VJ</h3>
         <div className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -110,53 +98,75 @@ function SpecialSessionCard() {
   );
 }
 
+function SessionCardTop({
+  title,
+  banner,
+  flyer,
+}: {
+  title: string;
+  banner?: string | null;
+  flyer?: string | null;
+}) {
+  const hasLayeredArtwork = Boolean(banner && flyer);
+
+  if (hasLayeredArtwork) {
+    return (
+      <div className="relative">
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-white/[0.03]">
+          <img
+            src={banner!}
+            alt={title}
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+        </div>
+        <img
+          src={flyer!}
+          alt={`Flyer — ${title}`}
+          className="absolute -bottom-10 left-5 aspect-[3/4] w-24 rounded-xl border border-white/15 object-cover shadow-[0_12px_32px_-8px_rgba(0,0,0,0.7)]"
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative aspect-[4/5] w-full overflow-hidden bg-white/[0.03]">
+      {flyer ? (
+        <img
+          src={flyer}
+          alt={title}
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          loading="lazy"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-prism opacity-30" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+    </div>
+  );
+}
+
 function SessionCard({ event }: { event: EventSummary }) {
   // Both artworks when the event has them: banner (is_primary) as the wide
   // card header, flyer (is_secondary) as a poster thumbnail overlapping it.
   // Falls back to a single portrait flyer when there's only one image.
   const banner = eventCoverUrl(event);
   const flyer = eventFlyerUrl(event);
-  const both = Boolean(banner && flyer && banner !== flyer);
+  const hasLayeredArtwork = Boolean(banner && flyer && banner !== flyer);
   return (
     <Link
       to="/sessions/$slug"
       params={{ slug: event.slug }}
       className="surface-card group flex flex-col overflow-hidden rounded-3xl transition-transform duration-500 hover:-translate-y-1"
     >
-      {both ? (
-        <div className="relative">
-          <div className="relative aspect-[16/9] w-full overflow-hidden bg-white/[0.03]">
-            <img
-              src={banner!}
-              alt={event.name}
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-          </div>
-          <img
-            src={flyer!}
-            alt={`Flyer — ${event.name}`}
-            className="absolute -bottom-10 left-5 aspect-[3/4] w-24 rounded-xl border border-white/15 object-cover shadow-[0_12px_32px_-8px_rgba(0,0,0,0.7)]"
-            loading="lazy"
-          />
-        </div>
-      ) : (
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-white/[0.03]">
-          {flyer ? (
-            <img
-              src={flyer}
-              alt={event.name}
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-prism opacity-30" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-        </div>
-      )}
-      <div className={`flex flex-1 flex-col p-6 ${both ? "pt-14" : ""}`}>
+      <SessionCardTop
+        title={event.name}
+        banner={hasLayeredArtwork ? banner : null}
+        flyer={flyer}
+      />
+      <div className={`flex flex-1 flex-col p-6 ${hasLayeredArtwork ? "pt-14" : ""}`}>
         <h3 className="font-display text-xl leading-tight">{event.name}</h3>
         <div className="mt-4 space-y-2 text-sm text-muted-foreground">
           <p className="flex items-center gap-2">
