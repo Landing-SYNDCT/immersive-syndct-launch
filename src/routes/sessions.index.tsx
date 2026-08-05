@@ -72,16 +72,24 @@ function SpecialSessionCard() {
       rel="noopener noreferrer"
       className="surface-card group flex flex-col overflow-hidden rounded-3xl transition-transform duration-500 hover:-translate-y-1"
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-white/[0.03]">
+      <div className="relative">
+        <div className="relative aspect-[16/9] w-full overflow-hidden bg-white/[0.03]">
+          <img
+            src="/Inmersive_live-1080x1080.jpg"
+            alt="INNEXEN LIVE AND TOPIC VJ"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+        </div>
         <img
           src="/Inmersive_live-1080x1080.jpg"
-          alt="INNEXEN LIVE AND TOPIC VJ"
-          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          alt="Flyer — INNEXEN LIVE AND TOPIC VJ"
+          className="absolute -bottom-10 left-5 aspect-[3/4] w-24 rounded-xl border border-white/15 object-cover shadow-[0_12px_32px_-8px_rgba(0,0,0,0.7)]"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
       </div>
-      <div className="flex flex-1 flex-col p-6">
+      <div className="flex flex-1 flex-col p-6 pt-14">
         <h3 className="font-display text-xl leading-tight">INNEXEN LIVE AND TOPIC VJ</h3>
         <div className="mt-4 space-y-2 text-sm text-muted-foreground">
           <p className="flex items-center gap-2">
