@@ -1,11 +1,11 @@
 import { CenterState, PageShell } from "@/components/chrome";
 import { SITE_URL } from "@/lib/seo";
 import {
-  eventCoverUrl,
-  eventFlyerUrl,
-  formatEventDate,
-  listPublicEvents,
-  type EventSummary,
+    eventCoverUrl,
+    eventFlyerUrl,
+    formatEventDate,
+    listPublicEvents,
+    type EventSummary,
 } from "@/lib/underpass";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight, CalendarDays, MapPin } from "lucide-react";
@@ -57,9 +57,48 @@ function Sessions() {
           {events.map((e) => (
             <SessionCard key={e.id} event={e} />
           ))}
+          <SpecialSessionCard />
         </div>
       )}
     </PageShell>
+  );
+}
+
+function SpecialSessionCard() {
+  return (
+    <a
+      href="https://masboleteria.com/event/domo-live-inmersive-26-08-2026-447/register"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="surface-card group flex flex-col overflow-hidden rounded-3xl transition-transform duration-500 hover:-translate-y-1"
+    >
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-white/[0.03]">
+        <img
+          src="/Inmersive_live-1080x1080.jpg"
+          alt="INNEXEN LIVE AND TOPIC VJ"
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+      </div>
+      <div className="flex flex-1 flex-col p-6">
+        <h3 className="font-display text-xl leading-tight">INNEXEN LIVE AND TOPIC VJ</h3>
+        <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+          <p className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+            miércoles, 26 de agosto de 2026 · 07:00 p.m.
+          </p>
+          <p className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+            YAWA, Cali
+          </p>
+        </div>
+        <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-foreground">
+          Ver entradas
+          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </span>
+      </div>
+    </a>
   );
 }
 
