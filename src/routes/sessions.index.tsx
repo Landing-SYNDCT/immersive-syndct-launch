@@ -74,7 +74,7 @@ function SpecialSessionCard() {
     >
       <SessionCardTop
         title="INNEXEN LIVE AND TOPIC VJ"
-        banner="/Inmersive_live-1080x1080.jpg"
+        banner="/immersive-imagotipo.png"
         flyer="/Inmersive_live-1080x1080.jpg"
       />
       <div className="flex flex-1 flex-col p-6 pt-14">
